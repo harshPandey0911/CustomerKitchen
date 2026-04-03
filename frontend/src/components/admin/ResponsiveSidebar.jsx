@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { APP_DOMAIN } from '../../constants/branding';
 
 const ResponsiveSidebar = ({ menuItems, activeItem, setActiveItem, onLogout, title = "Menu", topOffset = "5rem", heightCalc = "calc(100vh - 5rem)" }) => {
   return (
@@ -46,7 +47,7 @@ const ResponsiveSidebar = ({ menuItems, activeItem, setActiveItem, onLogout, tit
             C
           </div>
           <h3 className="font-semibold text-gray-900 text-xs">Customer</h3>
-          <p className="text-gray-500 text-xs">customer@kitchenhub.com</p>
+          <p className="text-gray-500 text-xs">{`customer@${APP_DOMAIN}`}</p>
         </div>
 
         {/* Logout Button */}

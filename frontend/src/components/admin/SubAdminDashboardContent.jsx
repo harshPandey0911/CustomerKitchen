@@ -1,5 +1,6 @@
 import React from 'react';
 import { adminUi, statusBadge } from './adminStyles';
+import { APP_NAME } from '../../constants/branding';
 
 const SubAdminDashboardContent = () => {
   const stats = [
@@ -20,7 +21,7 @@ const SubAdminDashboardContent = () => {
     <div className={adminUi.page}>
       <div>
         <h1 className={adminUi.pageTitle}>Sub Admin Dashboard</h1>
-        <p className={adminUi.pageDescription}>Department-based operations in the same KitchenHub analytics style.</p>
+        <p className={adminUi.pageDescription}>{`Department-based operations in the same ${APP_NAME} analytics style.`}</p>
       </div>
 
       <div className={adminUi.statsGrid}>

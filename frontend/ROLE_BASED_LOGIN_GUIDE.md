@@ -1,4 +1,4 @@
-# KitchenHub Multi-Role Login System - Complete Guide
+# Kitchen Appliance Multi-Role Login System - Complete Guide
 
 ## Overview
 This is a role-based authentication system with separate login pages for each role type. Each role has its own login mechanism and dashboard.
@@ -77,7 +77,7 @@ This is a role-based authentication system with separate login pages for each ro
 // LoginData
 {
   phone: "9876543210",           // For customer
-  email: "admin@kitchenhub.com", // For other roles
+  email: "admin@kitchenappliance.com", // For other roles
   role: "admin",
   userName: "Admin_user",
   isLoggedIn: true,
@@ -127,7 +127,7 @@ The `ProtectedRoute` component validates:
 
 ### Test Admin Login:
 1. Go to `/admin-login`
-2. Enter email: `admin@kitchenhub.com`
+2. Enter email: `admin@kitchenappliance.com`
 3. Enter password: `password123`
 4. Click Login
 5. Should redirect to `/admin-dashboard`
@@ -216,3 +216,4 @@ When a user tries to access a protected route without proper credentials:
 
 Last Updated: April 2, 2026
 Version: 1.0
+

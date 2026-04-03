@@ -1,4 +1,5 @@
 import React from 'react';
+import { APP_NAME } from '../../constants/branding';
 
 const AdminSidebar = ({ activeSection, setActiveSection }) => {
   const menuItems = [
@@ -16,7 +17,7 @@ const AdminSidebar = ({ activeSection, setActiveSection }) => {
   return (
     <div className="w-64 border-r border-orange-200 p-4 h-full bg-gradient-to-b from-indigo-50 to-white overflow-y-auto">
       <div className="sticky top-0 bg-gradient-to-b from-indigo-50 to-white pb-4 mb-4 border-b border-orange-200">
-        <h3 className="text-xs font-bold text-orange-400 uppercase tracking-widest truncate">🍳 Kitchen Hub</h3>
+        <h3 className="text-xs font-bold text-orange-400 uppercase tracking-widest truncate">🍳 {APP_NAME}</h3>
       </div>
       <div className="space-y-1">
         {menuItems.map((item) => (

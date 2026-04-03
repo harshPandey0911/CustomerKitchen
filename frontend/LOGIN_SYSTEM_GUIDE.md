@@ -2,7 +2,7 @@
 
 ## Overview
 
-A complete, production-ready login system for the KitchenHub Admin Dashboard with role-based redirection and form validation.
+A complete, production-ready login system for the Kitchen Appliance Admin Dashboard with role-based redirection and form validation.
 
 ## Features Implemented ✅
 
@@ -375,3 +375,4 @@ For issues or questions:
 **Status:** ✅ Ready for use in production demo
 **Last Updated:** April 2, 2026
 **Version:** 1.0
+

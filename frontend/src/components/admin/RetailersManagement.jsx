@@ -29,7 +29,7 @@ const RetailersManagement = () => {
     },
     {
       id: 3,
-      name: 'Modern Kitchen Hub',
+      name: 'Modern Kitchen Appliance',
       owner: 'Amit Patel',
       location: 'Andheri, Mumbai',
       contact: '9876-543-212',

@@ -246,7 +246,7 @@ function App() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:scale-105 lg:px-5 lg:py-2">
+            <button onClick={() => navigate('/customer/login')} className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:scale-105 lg:px-5 lg:py-2">
               Get Started
             </button>
             <button
@@ -276,7 +276,7 @@ function App() {
               Discover premium kitchen solutions that transform your cooking space into a chef&apos;s paradise. Quality, innovation, and style in every product.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <button onClick={() => navigate('/login')} className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-8 py-3 font-semibold text-white transition hover:scale-105">
+              <button onClick={() => navigate('/customer/login')} className="rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-8 py-3 font-semibold text-white transition hover:scale-105">
                 Shop Now
               </button>
               <button className="rounded-full border-2 border-orange-400 px-8 py-3 font-semibold text-orange-700 transition hover:bg-orange-50">

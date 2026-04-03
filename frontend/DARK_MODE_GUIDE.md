@@ -179,3 +179,4 @@ To verify dark mode is working:
 - ✅ Works in all admin pages
 - ✅ Smooth transitions (no flicker)
 - ✅ Mobile responsive
+

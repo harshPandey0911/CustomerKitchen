@@ -1,4 +1,4 @@
-# KitchenHub - Quick Access URLs
+# Kitchen Appliance - Quick Access URLs
 
 ## Landing & Hub
 - http://localhost:5173/              - Home/Landing
@@ -20,22 +20,22 @@ Test: Enter phone 9876543210 → OTP 123456
 ### Admin
 - http://localhost:5173/admin-login   - Go Here
 - http://localhost:5173/admin         - Dashboard (after login)
-- → Test: admin@kitchenhub.com / password123
+- → Test: admin@kitchenappliance.com / password123
 
 ### Sub Admin
 - http://localhost:5173/subadmin-login    - Go Here
 - http://localhost:5173/subadmin          - Dashboard (after login)
-- → Test: subadmin@kitchenhub.com / password123
+- → Test: subadmin@kitchenappliance.com / password123
 
 ### Distributor
 - http://localhost:5173/distributor-login - Go Here
 - http://localhost:5173/distributor       - Dashboard (after login)
-- → Test: distributor@kitchenhub.com / password123
+- → Test: distributor@kitchenappliance.com / password123
 
 ### Retailer
 - http://localhost:5173/retailer-login    - Go Here
 - http://localhost:5173/retailer          - Dashboard (after login)
-- → Test: retailer@kitchenhub.com / password123
+- → Test: retailer@kitchenappliance.com / password123
 
 ### Customer
 - http://localhost:5173/customer      - Customer Dashboard (after OTP login)
@@ -55,7 +55,7 @@ Test: Enter phone 9876543210 → OTP 123456
 
 ### Flow 1: Admin Login
 1. Go to: http://localhost:5173/admin-login
-2. Email: admin@kitchenhub.com
+2. Email: admin@kitchenappliance.com
 3. Password: anything
 4. Click Login
 5. Redirects to: /admin-dashboard
@@ -88,3 +88,4 @@ Test: Enter phone 9876543210 → OTP 123456
 ---
 
 Created: April 2, 2026
+

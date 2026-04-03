@@ -1,4 +1,4 @@
-# KitchenHub - Dynamic Role-Based Login System
+# Kitchen Appliance - Dynamic Role-Based Login System
 
 ## Overview
 
@@ -48,28 +48,28 @@ http://localhost:5173/login
 ```
 http://localhost:5173/login/admin
 ```
-- **Credentials**: Email: admin@kitchenhub.com, Password: (any)
+- **Credentials**: Email: admin@kitchenappliance.com, Password: (any)
 - **Redirects to**: `/admin-dashboard`
 
 ### Sub Admin (Email + Password)
 ```
 http://localhost:5173/login/subadmin
 ```
-- **Credentials**: Email: subadmin@kitchenhub.com, Password: (any)
+- **Credentials**: Email: subadmin@kitchenappliance.com, Password: (any)
 - **Redirects to**: `/subadmin-dashboard`
 
 ### Distributor (Email + Password)
 ```
 http://localhost:5173/login/distributor
 ```
-- **Credentials**: Email: distributor@kitchenhub.com, Password: (any)
+- **Credentials**: Email: distributor@kitchenappliance.com, Password: (any)
 - **Redirects to**: `/distributor-dashboard`
 
 ### Retailer (Email + Password)
 ```
 http://localhost:5173/login/retailer
 ```
-- **Credentials**: Email: retailer@kitchenhub.com, Password: (any)
+- **Credentials**: Email: retailer@kitchenappliance.com, Password: (any)
 - **Redirects to**: `/retailer-dashboard`
 
 ---
@@ -152,7 +152,7 @@ Customer → Phone + OTP
 ```javascript
 localStorage.setItem('role', currentRole);
 localStorage.setItem('loginData', {
-  email: 'admin@kitchenhub.com',  // or phone for customers
+  email: 'admin@kitchenappliance.com',  // or phone for customers
   role: 'admin',
   isLoggedIn: true
 });
@@ -266,7 +266,7 @@ const dashboardMap = {
 
 // After admin login
 {
-  email: "admin@kitchenhub.com",
+  email: "admin@kitchenappliance.com",
   role: "admin",
   userName: "admin_admin",
   isLoggedIn: true,  // Immediately logged in
@@ -333,3 +333,4 @@ src/
 
 Last Updated: April 2, 2026
 Version: 2.0 (Dynamic)
+

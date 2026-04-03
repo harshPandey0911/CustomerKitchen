@@ -17,6 +17,7 @@ import Distributor from './Distributor';
 import RetailerDashboard from './RetailerDashboard';
 import RetailersManagement from '../../components/admin/RetailersManagement';
 import { adminUi } from '../../components/admin/adminStyles';
+import { APP_DOMAIN, APP_NAME } from '../../constants/branding';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('loginData');
     localStorage.removeItem('role');
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const handlePasswordChange = (e) => {
@@ -136,7 +137,7 @@ const AdminDashboard = () => {
       case 'system-control':
         return <SystemControl />;
       case 'distributor-performance':
-        return <Distributor />;
+        return <Distributor embedded />;
       case 'retailer-performance':
         return <RetailersManagement />;
       default:
@@ -248,7 +249,7 @@ const AdminDashboard = () => {
             KH
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">KitchenHub</p>
+            <p className="text-sm font-semibold text-gray-800">{APP_NAME}</p>
             <p className="text-xs text-gray-400">Admin Dashboard</p>
           </div>
           <button
@@ -418,7 +419,7 @@ const AdminDashboard = () => {
                   <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg">
                     <div className="border-b border-gray-200 p-4">
                       <p className="text-sm font-semibold text-gray-900">{userName}</p>
-                      <p className="text-xs text-gray-500">admin@kitchenhub.com</p>
+                      <p className="text-xs text-gray-500">{`admin@${APP_DOMAIN}`}</p>
                     </div>
                     <div className="space-y-1 p-2">
                       <button className="w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100">

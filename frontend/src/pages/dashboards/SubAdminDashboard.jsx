@@ -6,6 +6,7 @@ import SubAdminDashboardContent from '../../components/admin/SubAdminDashboardCo
 import Inventory from '../../components/admin/Inventory';
 import Orders from '../../components/admin/Orders';
 import ServiceRequests from '../../components/admin/ServiceRequests';
+import { APP_DOMAIN, APP_NAME } from '../../constants/branding';
 
 const SubAdminDashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const SubAdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('loginData');
     localStorage.removeItem('role');
-    navigate('/login');
+    navigate('/subadmin/login');
   };
 
   const renderContent = () => {
@@ -77,7 +78,7 @@ const SubAdminDashboard = () => {
             KH
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">KitchenHub</p>
+            <p className="text-sm font-semibold text-gray-800">{APP_NAME}</p>
             <p className="text-xs text-gray-400">Sub Admin Panel</p>
           </div>
           <button
@@ -170,7 +171,7 @@ const SubAdminDashboard = () => {
                 <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg">
                   <div className="border-b border-gray-200 p-4">
                     <p className="text-sm font-semibold text-gray-900">Sub Admin</p>
-                    <p className="text-xs text-gray-500">subadmin@kitchenhub.com</p>
+                    <p className="text-xs text-gray-500">{`subadmin@${APP_DOMAIN}`}</p>
                   </div>
                   <div className="space-y-1 p-2">
                     <button className="w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100">

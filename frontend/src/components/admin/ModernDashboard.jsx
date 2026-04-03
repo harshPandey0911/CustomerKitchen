@@ -34,11 +34,13 @@ const ModernDashboard = () => {
   ];
 
   const salesData = [
-    { product: 'Mixer Grinder', sales: 4000 },
-    { product: 'Electric Kettle', sales: 3000 },
-    { product: 'Microwave', sales: 5500 },
-    { product: 'Air Fryer', sales: 4500 },
-    { product: 'Toaster', sales: 3200 },
+    { name: 'Mixer Grinder', sales: 4000 },
+    { name: 'Electric Kettle', sales: 3000 },
+    { name: 'Microwave', sales: 5500 },
+    { name: 'Air Fryer', sales: 4500 },
+    { name: 'Toaster', sales: 3200 },
+    { name: 'Refrigerator', sales: 6000 },
+    { name: 'Induction', sales: 2800 },
   ];
 
   const statsCards = [
@@ -57,6 +59,7 @@ const ModernDashboard = () => {
   ];
 
   const chartAxis = { stroke: '#9ca3af', fontSize: 12 };
+  const productChartAxis = { fill: '#6b7280', fontSize: 12 };
   const chartTooltip = {
     backgroundColor: '#fff',
     border: '1px solid #e5e7eb',
@@ -131,15 +134,24 @@ const ModernDashboard = () => {
         <div className={adminUi.panelHeader}>
           <h3 className={adminUi.panelTitle}>Sales by Product</h3>
         </div>
-        <div className="p-4">
-          <div className="h-[260px]">
+        <div className="p-3 pb-2">
+          <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salesData} barCategoryGap="10%" barGap={1}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="product" tick={chartAxis} axisLine={false} tickLine={false} />
-              <YAxis tick={chartAxis} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={chartTooltip} cursor={{ fill: '#f3f4f6' }} />
-              <Bar dataKey="sales" fill="#9CA3AF" barSize={24} radius={[6, 6, 0, 0]} activeBar={{ fill: '#6B7280' }} />
+              <BarChart data={salesData} barCategoryGap="10%" barGap={2} margin={{ top: 10, right: 10, left: 30, bottom: 10 }}>
+                <CartesianGrid stroke="#f1f5f9" strokeDasharray="2 2" strokeWidth={0.5} vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tick={productChartAxis}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={-16}
+                  textAnchor="end"
+                  height={52}
+                />
+                <YAxis tick={productChartAxis} axisLine={false} tickLine={false} width={40} />
+                <Tooltip contentStyle={chartTooltip} cursor={{ fill: '#f8fafc' }} formatter={(value) => value.toLocaleString()} />
+                <Bar dataKey="sales" fill="#6B7280" barSize={40} radius={[6, 6, 0, 0]} activeBar={{ fill: '#4B5563' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>

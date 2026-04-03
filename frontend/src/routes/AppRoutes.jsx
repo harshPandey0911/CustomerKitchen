@@ -2,8 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth pages
-import Login    from '../pages/auth/Login';
-import Signup   from '../pages/auth/Signup';
+import CustomerLogin from '../pages/auth/CustomerLogin';
+import Signup from '../pages/auth/Signup';
 import VerifyOtp from '../pages/auth/VerifyOtp';
 import AdminLogin from '../pages/auth/AdminLogin';
 import SubAdminLogin from '../pages/auth/SubAdminLogin';
@@ -12,15 +12,17 @@ import RetailerLogin from '../pages/auth/RetailerLogin';
 import LoginHub from '../pages/auth/LoginHub';
 
 // Dashboards
-import AdminDashboard       from '../pages/dashboards/AdminDashboard';
-import SubAdminDashboard    from '../pages/dashboards/SubAdminDashboard';
-import Distributor          from '../pages/dashboards/Distributor';
-import RetailerDashboard    from '../pages/dashboards/RetailerDashboard';
-import CustomerDashboard    from '../pages/dashboards/CustomerDashboard';
-import CategoryProducts    from '../pages/customer/CategoryProducts';
+import AdminDashboard from '../pages/dashboards/AdminDashboard';
+import SubAdminDashboard from '../pages/dashboards/SubAdminDashboard';
+import Distributor from '../pages/dashboards/Distributor';
+import RetailerDashboard from '../pages/dashboards/RetailerDashboard';
+import CustomerDashboard from '../pages/dashboards/CustomerDashboard';
+import CategoryProducts from '../pages/customer/CategoryProducts';
+import NotFound from '../pages/NotFound';
 
 // Guard
 import ProtectedRoute from '../components/auth/ProtectedRoute';
+import ScrollToTop from '../components/ScrollToTop';
 
 // Landing
 import Landing from '../pages/Landing';
@@ -28,111 +30,107 @@ import Landing from '../pages/Landing';
 const AppRoutes = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
-        {/* Public Routes */}
-        <Route path="/"           element={<Landing />} />
-        <Route path="/login-hub"  element={<LoginHub />} />
-        
-        {/* Customer Login Routes */}
-        <Route path="/login"      element={<Login />} />
-        <Route path="/signup"     element={<Signup />} />
+        {/* Public routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login-hub" element={<LoginHub />} />
+
+        {/* Explicit auth routes - keep role routes above wildcard */}
+        <Route path="/login" element={<CustomerLogin />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/subadmin/login" element={<SubAdminLogin />} />
+        <Route path="/distributer/login" element={<Navigate to="/distributor/login" replace />} />
+        <Route path="/distributor/login" element={<DistributorLogin />} />
+        <Route path="/retailer/login" element={<RetailerLogin />} />
+        <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
 
-        {/* Dynamic Role-Based Login Routes (using single Login component) */}
-        <Route path="/login/:role" element={<Login />} />
-
-        {/* Legacy Role-Based Login Routes (kept for backward compatibility) */}
-        <Route path="/admin-login"       element={<AdminLogin />} />
-        <Route path="/subadmin-login"    element={<SubAdminLogin />} />
-        <Route path="/distributor-login" element={<DistributorLogin />} />
-        <Route path="/retailer-login"    element={<RetailerLogin />} />
-
-        {/* Protected — role-specific dashboards */}
-        {/* Admin Shortcut Routes */}
+        {/* Protected role routes */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboard />
+            <ProtectedRoute allowedRoles={['admin']} redirectTo="/admin/login">
+              <Navigate to="/admin/dashboard" replace />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/admin-dashboard"
+          path="/admin/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin']} redirectTo="/admin/login">
               <AdminDashboard />
             </ProtectedRoute>
           }
         />
 
-        {/* SubAdmin Shortcut Routes */}
         <Route
           path="/subadmin"
           element={
-            <ProtectedRoute allowedRoles={['subadmin']}>
-              <SubAdminDashboard />
+            <ProtectedRoute allowedRoles={['subadmin']} redirectTo="/subadmin/login">
+              <Navigate to="/subadmin/dashboard" replace />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/subadmin-dashboard"
+          path="/subadmin/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['subadmin']}>
+            <ProtectedRoute allowedRoles={['subadmin']} redirectTo="/subadmin/login">
               <SubAdminDashboard />
             </ProtectedRoute>
           }
         />
 
-        {/* Distributor Shortcut Routes */}
         <Route
           path="/distributor"
           element={
-            <ProtectedRoute allowedRoles={['distributor']}>
+            <ProtectedRoute allowedRoles={['distributor']} redirectTo="/distributor/login">
+              <Navigate to="/distributor/dashboard" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/distributer" element={<Navigate to="/distributor" replace />} />
+        <Route path="/distributer/dashboard" element={<Navigate to="/distributor/dashboard" replace />} />
+        <Route path="/distributer/retailers" element={<Navigate to="/distributor/retailers" replace />} />
+        <Route
+          path="/distributor/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['distributor']} redirectTo="/distributor/login">
               <Distributor />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/distributor-dashboard"
+          path="/distributor/retailers"
           element={
-            <ProtectedRoute allowedRoles={['distributor']}>
-              <Distributor />
+            <ProtectedRoute allowedRoles={['distributor']} redirectTo="/distributor/login">
+              <Distributor initialSection="retailers" />
             </ProtectedRoute>
           }
         />
 
-        {/* Retailer Shortcut Routes */}
         <Route
           path="/retailer"
           element={
-            <ProtectedRoute allowedRoles={['retailer']}>
-              <RetailerDashboard />
+            <ProtectedRoute allowedRoles={['retailer']} redirectTo="/retailer/login">
+              <Navigate to="/retailer/dashboard" replace />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/retailer-dashboard"
+          path="/retailer/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['retailer']}>
+            <ProtectedRoute allowedRoles={['retailer']} redirectTo="/retailer/login">
               <RetailerDashboard />
             </ProtectedRoute>
           }
         />
 
-        {/* Customer Shortcut Routes */}
         <Route
           path="/customer"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
-              <Navigate to="/customer/home" replace />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/customer-dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <Navigate to="/customer/home" replace />
             </ProtectedRoute>
           }
@@ -140,23 +138,39 @@ const AppRoutes = () => {
         <Route
           path="/customer/home"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CustomerDashboard />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/customer/shop"
+          path="/customer/products"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CustomerDashboard />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/customer/orders"
+          path="/customer/register-product"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/service"
+          element={
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/notifications"
+          element={
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CustomerDashboard />
             </ProtectedRoute>
           }
@@ -164,30 +178,56 @@ const AppRoutes = () => {
         <Route
           path="/customer/profile"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CustomerDashboard />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/customer/more"
+          path="/customer/edit-profile"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CustomerDashboard />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/customer/profile/edit"
+          element={
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/support"
+          element={
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/about"
+          element={
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/customer/shop" element={<Navigate to="/customer/home" replace />} />
+        <Route path="/customer/orders" element={<Navigate to="/customer/service" replace />} />
+        <Route path="/customer/more" element={<Navigate to="/customer/profile" replace />} />
         <Route
           path="/customer/category/:category"
           element={
-            <ProtectedRoute allowedRoles={['customer']}>
+            <ProtectedRoute allowedRoles={['customer']} redirectTo="/customer/login">
               <CategoryProducts />
             </ProtectedRoute>
           }
         />
 
-        {/* Fallback — redirect unknown paths to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

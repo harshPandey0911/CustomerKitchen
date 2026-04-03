@@ -1,4 +1,4 @@
-# KitchenHub - Quick Access URLs (Updated: Dynamic Login System)
+# Kitchen Appliance - Quick Access URLs (Updated: Dynamic Login System)
 
 ## Landing & Hub
 - http://localhost:5173/              - Home/Landing
@@ -15,22 +15,22 @@
 
 ### Admin (Email + Password)
 - http://localhost:5173/login/admin   - Go Here
-- Email: admin@kitchenhub.com, Password: (any)
+- Email: admin@kitchenappliance.com, Password: (any)
 - → Redirects to: /admin-dashboard
 
 ### Sub Admin (Email + Password)
 - http://localhost:5173/login/subadmin - Go Here
-- Email: subadmin@kitchenhub.com, Password: (any)
+- Email: subadmin@kitchenappliance.com, Password: (any)
 - → Redirects to: /subadmin-dashboard
 
 ### Distributor (Email + Password)
 - http://localhost:5173/login/distributor - Go Here
-- Email: distributor@kitchenhub.com, Password: (any)
+- Email: distributor@kitchenappliance.com, Password: (any)
 - → Redirects to: /distributor-dashboard
 
 ### Retailer (Email + Password)
 - http://localhost:5173/login/retailer - Go Here
-- Email: retailer@kitchenhub.com, Password: (any)
+- Email: retailer@kitchenappliance.com, Password: (any)
 - → Redirects to: /retailer-dashboard
 
 ---
@@ -64,7 +64,7 @@
 
 ### Flow 1: Admin Login (Dynamic Route)
 1. Go to: http://localhost:5173/login/admin
-2. Email: admin@kitchenhub.com
+2. Email: admin@kitchenappliance.com
 3. Password: anything
 4. Click Login
 5. Redirects to: /admin-dashboard
@@ -78,7 +78,7 @@
 
 ### Flow 3: Sub Admin Login (Dynamic Route)
 1. Go to: http://localhost:5173/login/subadmin
-2. Email: subadmin@kitchenhub.com
+2. Email: subadmin@kitchenappliance.com
 3. Password: anything
 4. Click Login
 5. Redirects to: /subadmin-dashboard
@@ -117,3 +117,4 @@
 
 Created: April 2, 2026
 Updated: Version 2.0 (Dynamic Login System)
+

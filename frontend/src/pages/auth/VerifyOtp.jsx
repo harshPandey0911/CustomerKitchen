@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import OtpInput from '../../components/auth/OtpInput';
+import { APP_NAME } from '../../constants/branding';
 
 const ROLE_ROUTES = {
-  admin:       '/admin-dashboard',
-  subadmin:    '/subadmin-dashboard',
-  distributor: '/distributor-dashboard',
-  retailer:    '/retailer-dashboard',
+  admin:       '/admin/dashboard',
+  subadmin:    '/subadmin/dashboard',
+  distributor: '/distributor/dashboard',
+  retailer:    '/retailer/dashboard',
   customer:    '/customer/home',
 };
 
@@ -40,7 +41,7 @@ const VerifyOtp = () => {
       toast.success('Verified! Redirecting...');
 
       setTimeout(() => {
-        navigate(ROLE_ROUTES[role] || '/login');
+        navigate(ROLE_ROUTES[role] || '/customer/login');
       }, 400);
     } catch (err) {
       toast.error('Verification failed. Try again.');
@@ -61,13 +62,13 @@ const VerifyOtp = () => {
       <div className="w-full max-w-md">
 
         {/* Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <div className="rounded-2xl border-2 border-black bg-white p-8 shadow-xl transition duration-200 hover:shadow-2xl">
 
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6">
               <span className="text-2xl">🍳</span>
-              <span className="text-lg font-bold text-gray-900">KitchenHub</span>
+              <span className="text-lg font-bold text-gray-900">{APP_NAME}</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Verify OTP</h1>
             <p className="text-sm text-gray-500">
@@ -119,7 +120,7 @@ const VerifyOtp = () => {
                 Resend
               </button>
             </p>
-            <Link to="/login" className="text-gray-400 hover:text-gray-600 transition">
+            <Link to="/customer/login" className="text-gray-400 hover:text-gray-600 transition">
               ← Back
             </Link>
           </div>
