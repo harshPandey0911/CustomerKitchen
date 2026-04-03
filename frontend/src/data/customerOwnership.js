@@ -50,6 +50,15 @@ export const initialOwnedProducts = [
     warrantyMonths: 12,
     invoiceName: '',
   },
+  {
+    id: 'prd-1004',
+    productName: 'Refrigerator',
+    brand: APP_NAME,
+    modelNumber: 'KH-RF420',
+    purchaseDate: '2025-08-20',
+    warrantyMonths: 24,
+    invoiceName: 'refrigerator-invoice.pdf',
+  },
 ];
 
 export const initialServiceRequests = [

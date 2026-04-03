@@ -4,7 +4,7 @@ import './App.css';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-[#F8F6F4]">
       <AppRoutes />
     </div>
   );

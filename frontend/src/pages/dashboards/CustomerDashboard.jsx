@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { LuBell, LuHouse, LuPackage, LuPlus, LuUserRound, LuWrench } from 'react-icons/lu';
+import { LuHouse, LuPackage, LuPlus, LuUserRound, LuWrench } from 'react-icons/lu';
 import Support from '../customer/Support';
 import About from '../customer/About';
 import CustomerHome from '../customer/CustomerHome';
@@ -18,17 +18,16 @@ import {
   ownershipProductOptions,
 } from '../../data/customerOwnership';
 import { APP_DOMAIN, APP_NAME } from '../../constants/branding';
+import Header from '../../components/customer/dashboard/Header';
+import BottomNav from '../../components/customer/dashboard/BottomNav';
 
 const navItems = [
-  { id: 'home', label: 'Home', mobileLabel: 'Home', path: '/customer/home', icon: LuHouse },
-  { id: 'products', label: 'My Products', mobileLabel: 'Products', path: '/customer/products', icon: LuPackage },
-  { id: 'register', label: 'Register Product', mobileLabel: 'Register', path: '/customer/register-product', icon: LuPlus },
-  { id: 'service', label: 'Service Requests', mobileLabel: 'Service', path: '/customer/service', icon: LuWrench },
-  { id: 'notifications', label: 'Notifications', mobileLabel: 'Alerts', path: '/customer/notifications', icon: LuBell },
-  { id: 'profile', label: 'Profile', mobileLabel: 'Profile', path: '/customer/profile', icon: LuUserRound },
+  { id: 'home', label: 'Home', path: '/customer/home', icon: LuHouse },
+  { id: 'products', label: 'Products', path: '/customer/products', icon: LuPackage },
+  { id: 'register', label: 'Register', path: '/customer/register-product', icon: LuPlus, isCenter: true },
+  { id: 'service', label: 'Service', path: '/customer/service', icon: LuWrench },
+  { id: 'profile', label: 'Profile', path: '/customer/profile', icon: LuUserRound },
 ];
-
-const mobileNavItems = navItems.filter((item) => item.id !== 'notifications');
 
 const profilePaths = ['/customer/profile', '/customer/edit-profile', '/customer/profile/edit', '/customer/support', '/customer/about'];
 
@@ -74,9 +73,10 @@ const CustomerDashboard = () => {
   const unreadCount = notifications.filter((notification) => !readNotificationIds.includes(notification.id)).length;
   const currentPath = location.pathname;
   const userName = profile.fullName || 'Customer';
+  const avatarInitial = 'H';
   const activeNavId = profilePaths.includes(currentPath)
     ? 'profile'
-    : navItems.find((item) => item.path === currentPath)?.id || 'home';
+    : navItems.find((item) => item.path === currentPath)?.id || null;
 
   useEffect(() => {
     localStorage.setItem('customerOwnedProducts', JSON.stringify(products));
@@ -113,8 +113,8 @@ const CustomerDashboard = () => {
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
@@ -234,6 +234,8 @@ const CustomerDashboard = () => {
       case '/customer/profile':
         return (
           <CustomerProfile
+            profile={profile}
+            avatarInitial={avatarInitial}
             products={products}
             serviceRequests={serviceRequests}
             unreadCount={unreadCount}
@@ -263,139 +265,47 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <div className="customer-panel min-h-screen">
-      <div className="mx-auto w-full max-w-[1440px] px-4 pb-4 pt-0 md:px-6 md:pb-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="hidden lg:block">
-            <div className="sticky top-4 space-y-4">
-              <div className="customer-hero overflow-hidden rounded-[32px] p-6 text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/65">{APP_NAME}</p>
-                <h2 className="mt-4 text-2xl font-semibold leading-tight">Customer Panel</h2>
-                <p className="mt-3 text-sm leading-6 text-white/75">
-                  A premium appliance ownership view for warranty tracking, service intake, and product history.
-                </p>
-              </div>
-
-              <nav className="customer-nav-shell rounded-[28px] p-3">
-                {navItems.map((item) => {
-                  const active = item.id === activeNavId;
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => navigateWithScroll(item.path)}
-                      className={`customer-nav-item mb-2 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all duration-200 last:mb-0 ${
-                        active ? 'customer-nav-item-active shadow-sm' : ''
-                      }`}
-                    >
-                      <span className={active ? 'customer-nav-icon-active' : 'customer-nav-icon'}>
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-
-              <div className="customer-surface customer-card-item rounded-[28px] p-5">
-                <p className="customer-heading text-sm font-semibold">Need help?</p>
-                <p className="customer-subheading mt-2 text-sm leading-6">
-                  Support and About stay one click away inside Profile, so the ownership workflow never feels disconnected.
-                </p>
-              </div>
-            </div>
-          </aside>
-
-          <div className="min-w-0">
-            <div className="customer-topbar fixed left-0 top-0 z-50 w-full">
-              <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-3 md:px-6 lg:px-8">
-                <div className="min-w-0">
-                  <p className="customer-logo-text text-[18px] font-bold tracking-tight">{APP_NAME}</p>
-                  <p className="customer-subheading text-sm font-medium">Product Dashboard</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => navigateWithScroll('/customer/notifications')}
-                    className="customer-icon-button relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-105"
-                    aria-label="Open notifications"
-                  >
-                    <LuBell className="h-5 w-5" />
-                    {unreadCount > 0 ? (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#6B4226] px-1 text-[10px] font-semibold text-white">
-                        {unreadCount}
-                      </span>
-                    ) : null}
-                  </button>
-
-                  <div className="relative profile-container">
-                    <button
-                      type="button"
-                      onClick={() => setOpenProfile((current) => !current)}
-                      className="customer-avatar-btn flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105"
-                      aria-label="Open profile menu"
-                    >
-                      {userName.charAt(0).toUpperCase()}
-                    </button>
-
-                    {openProfile ? (
-                      <div className="customer-surface absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl transition-all duration-200">
-                        <button
-                          type="button"
-                          onClick={() => navigateWithScroll('/customer/profile/edit')}
-                          className="customer-subheading w-full px-4 py-2 text-left text-sm transition-colors duration-200 hover:bg-[#FAF7F4]"
-                        >
-                          Edit Profile
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleLogout}
-                          className="w-full px-4 py-2 text-left text-sm text-[#6B4F3B] transition-colors duration-200 hover:bg-[#FAF7F4]"
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </header>
-            </div>
-
-            <main className="pt-[80px] pb-28 lg:pb-6">
-              <div key={currentPath} className="page customer-page-transition transition-all duration-300">
-                {renderPage()}
-              </div>
-            </main>
+    <div
+      className="customer-panel min-h-screen overflow-x-hidden bg-[#F8F6F4]"
+      style={{
+        '--customer-primary': '#8B5E3C',
+        '--customer-dark': '#1E1E1E',
+        '--customer-light': '#A9745B',
+        '--customer-accent': '#A9745B',
+        '--customer-bg': '#F8F6F4',
+        '--customer-card': '#FFFFFF',
+        '--customer-border': '#ECE4DD',
+        '--customer-text': '#1E1E1E',
+        '--customer-muted': '#6B6B6B',
+        '--customer-soft': '#F3ECE7',
+      }}
+    >
+      <div className="fixed inset-x-0 top-0 z-30">
+        <div className="mx-auto w-full max-w-[420px] px-4">
+          <div className="profile-container">
+            <Header
+              title={APP_NAME}
+              subtitle="Product Dashboard"
+              unreadCount={unreadCount}
+              avatarInitial={avatarInitial}
+              isProfileMenuOpen={openProfile}
+              onNotificationsClick={() => navigateWithScroll('/customer/notifications')}
+              onToggleProfileMenu={() => setOpenProfile((current) => !current)}
+              onOpenProfile={() => navigateWithScroll('/customer/profile')}
+              onEditProfile={() => navigateWithScroll('/customer/profile/edit')}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       </div>
 
-      <div className="customer-floating-nav lg:hidden">
-        <nav className="flex w-full items-center justify-around gap-0">
-          {mobileNavItems.map((item) => {
-            const active = item.id === activeNavId;
-            const Icon = item.icon;
+      <main className="mx-auto min-h-screen w-full max-w-[420px] px-4 pb-32 pt-[112px]">
+        <div key={currentPath} className="min-w-0 transition-all duration-300 ease-out">
+          {renderPage()}
+        </div>
+      </main>
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => navigateWithScroll(item.path)}
-                className={`customer-floating-nav-item rounded-full px-1 text-[11px] transition-all duration-300 ${
-                  active ? 'customer-floating-nav-item-active font-medium' : ''
-                }`}
-              >
-                <span className="customer-floating-nav-icon-wrap flex h-5 items-center justify-center">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="customer-floating-nav-label text-[11px]">{item.mobileLabel}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      <BottomNav items={navItems} activeId={activeNavId} onNavigate={navigateWithScroll} />
     </div>
   );
 };

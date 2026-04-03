@@ -29,6 +29,304 @@ body, html, #root {
   box-shadow: none !important;
 }
 
+body.modal-open {
+  overflow: hidden;
+  height: 100vh;
+  position: fixed;
+  width: 100%;
+}
+
+@keyframes customerAuthSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes customerFormScreenIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes slideDownFull {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.customer-auth-page {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.customer-auth-page .customer-auth-hero {
+  box-shadow: 0 28px 80px rgba(255, 77, 109, 0.22) !important;
+}
+
+.customer-auth-page .customer-auth-sheet {
+  box-shadow: 0 -14px 40px rgba(92, 58, 33, 0.08) !important;
+  animation: customerAuthSlideUp 0.4s ease both;
+}
+
+.customer-auth-page .auth-container {
+  padding-top: 16px !important;
+}
+
+.customer-auth-page .auth-tabs {
+  border-bottom: 1px solid #E8D9CC !important;
+}
+
+.customer-auth-page .auth-title {
+  margin-bottom: 10px !important;
+}
+
+.customer-auth-page .auth-form {
+  margin-top: 10px !important;
+}
+
+.customer-auth-page .tab {
+  border-bottom: 2px solid transparent !important;
+}
+
+.customer-auth-page .tab-active {
+  border-bottom-color: #5C3A21 !important;
+  color: #5C3A21 !important;
+}
+
+.customer-auth-page .tab-inactive {
+  color: #8B7B70 !important;
+}
+
+.customer-auth-page .customer-auth-underline {
+  border-bottom: 1px solid #E8D7CA !important;
+}
+
+.customer-auth-page .customer-auth-underline:focus-within {
+  border-bottom: 2px solid #5C3A21 !important;
+  box-shadow: none !important;
+}
+
+.customer-auth-page .customer-auth-underline:focus-within .auth-input-icon {
+  color: #5C3A21 !important;
+}
+
+.customer-auth-page .customer-auth-underline-error {
+  border-bottom: 2px solid #C89A82 !important;
+}
+
+.customer-auth-page .customer-auth-underline-error:focus-within .auth-input-icon {
+  color: #5C3A21 !important;
+}
+
+.customer-auth-page .customer-auth-submit {
+  box-shadow: 0 14px 28px rgba(92, 58, 33, 0.24) !important;
+}
+
+.customer-auth-page .customer-auth-submit:hover {
+  box-shadow: 0 18px 34px rgba(92, 58, 33, 0.28) !important;
+}
+
+/* Enhanced input focus styles */
+.customer-auth-page .customer-auth-underline input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.customer-auth-page .customer-auth-underline input:focus {
+  color: #5C3A21 !important;
+}
+
+.customer-auth-page .customer-auth-underline input:not(:placeholder-shown) ~ label,
+.customer-auth-page .customer-auth-underline input:focus ~ label {
+  transform: translateY(-8px);
+  font-size: 12px !important;
+  color: #5C3A21 !important;
+  font-weight: 600;
+}
+
+.customer-auth-page .customer-auth-underline input:focus ~ .input-icon {
+  color: #5C3A21 !important;
+}
+
+/* Icon focus effect - changes color when input is focused */
+.customer-auth-page .customer-auth-underline:focus-within .auth-input-icon {
+  color: #5C3A21 !important;
+}
+
+.customer-auth-page .customer-auth-underline .auth-input-icon {
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.customer-panel .customer-form-screen {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  height: calc(100dvh - 64px);
+  overflow-y: auto;
+  padding: 16px 16px 140px;
+  background: #f9f6f2;
+  z-index: 1200 !important;
+  animation: customerFormScreenIn 0.25s ease both;
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 1024px) {
+  .customer-panel .customer-form-screen {
+    padding: 24px 24px 40px;
+  }
+}
+
+.customer-panel .customer-form-screen form,
+.customer-panel .customer-form-screen section {
+  padding-bottom: 20px;
+}
+
+/* Modal Popup Styles */
+.customer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  animation: overlayFadeIn 0.25s ease both;
+  padding: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.customer-modal-overlay.modal-centered {
+  align-items: center;
+}
+
+.customer-modal-box {
+  width: 100%;
+  max-width: 520px;
+  max-height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfbf8 100%);
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: none;
+  animation: slideDownFull 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  position: relative;
+  margin: 0;
+  will-change: transform;
+}
+
+.customer-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--customer-border);
+  background: linear-gradient(135deg, rgba(107, 66, 38, 0.02), rgba(139, 94, 60, 0.02));
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.customer-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 50%;
+  color: var(--customer-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.customer-modal-close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.customer-modal-close-btn:active {
+  transform: scale(0.95);
+}
+
+.customer-modal-content {
+  padding: 24px;
+  max-height: calc(100vh - 68px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f9f6f2;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.customer-modal-content form {
+  padding-bottom: 20px;
+}
+
+/* Compact form spacing inside modal */
+.customer-modal-content > p:first-of-type {
+  margin-bottom: 16px !important;
+}
+
+.customer-modal-content .customer-section-wrapper {
+  gap: 14px !important;
+}
+
+.customer-modal-content .customer-section-wrapper label span {
+  margin-bottom: 6px !important;
+}
+
+.customer-modal-content textarea.input-field {
+  min-height: 100px;
+  resize: none;
+}
+
+.customer-modal-content .input-field {
+  min-height: 44px;
+  font-size: 14px;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -143,15 +441,19 @@ body, html, #root {
   --kitchen-accent: #facc15;
   --kitchen-dark: #1f2937;
   --kitchen-light: #f3f4f6;
+  /* Default customer panel colors - blue theme */
+  --customer-primary: #0891b2;
+  --customer-dark: #0e7490;
+  --customer-light: #cffafe;
+  --customer-accent: #06b6d4;
+  --customer-bg: #f8f6f6;
+  --customer-card: #ffffff;
+  --customer-border: #e0e7ff;
+  --customer-text: #1f2937;
+  --customer-muted: #6b7280;
+  --customer-soft: #f0f9ff;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Scrollbar styling - HIDDEN */
 ::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
@@ -351,11 +653,10 @@ textarea.input-field {
   color: #ffffff;
   padding: 10px 14px;
   font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-:root {
+/* Auth-specific colors - brown theme for login/signup */
+.customer-auth-page {
   --customer-primary: #6b4226;
   --customer-dark: #4a2f1e;
   --customer-light: #d2b48c;
@@ -368,10 +669,16 @@ textarea.input-field {
   --customer-soft: #faf6f1;
 }
 
+.customer-auth-page {
+  --auth-primary: #6b4226;
+  --auth-dark: #4a2f1e;
+  --auth-accent: #8b5e3c;
+}
+
 .customer-panel {
-  background: linear-gradient(180deg, #fcfaf8 0%, var(--customer-bg) 58%, #f1ebe4 100%) !important;
+  background: var(--customer-bg) !important;
   color: var(--customer-text) !important;
-  font-family: 'Poppins', 'Segoe UI', 'Roboto', sans-serif !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
 @keyframes customerFadeIn {
@@ -609,6 +916,14 @@ textarea.input-field {
   backdrop-filter: blur(10px);
   animation: customerFadeIn 0.5s ease both;
   z-index: 1000 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.modal-open .customer-panel .customer-floating-nav {
+  transform: translateX(-50%) translateY(150px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .customer-panel .customer-floating-nav-item {
