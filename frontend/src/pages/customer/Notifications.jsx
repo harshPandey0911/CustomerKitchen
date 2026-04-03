@@ -1,25 +1,25 @@
 import { formatDisplayDate } from '../../data/customerOwnership';
 
-const cardClass = 'rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60';
+const cardClass = 'customer-surface rounded-[28px] p-5';
 
 const getToneClasses = (tone) => {
   if (tone === 'success') {
-    return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    return 'customer-badge';
   }
 
   if (tone === 'warning') {
-    return 'bg-amber-50 text-amber-700 border-amber-100';
+    return 'customer-badge-soft';
   }
 
   if (tone === 'danger') {
-    return 'bg-rose-50 text-rose-700 border-rose-100';
+    return 'customer-badge-deep';
   }
 
   if (tone === 'accent') {
-    return 'bg-sky-50 text-sky-700 border-sky-100';
+    return 'customer-badge';
   }
 
-  return 'bg-slate-50 text-slate-700 border-slate-200';
+  return 'customer-badge-soft';
 };
 
 export default function Notifications({ notifications, unreadCount }) {
@@ -41,18 +41,18 @@ export default function Notifications({ notifications, unreadCount }) {
   return (
     <div className="space-y-6 lg:space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-950 lg:text-3xl">Notifications</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+        <h1 className="text-2xl font-bold text-black lg:text-3xl">Notifications</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-700">
           Stay ahead of expiring warranties, technician updates, and ownership milestones without losing signal in the noise.
         </p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className={cardClass}>
-            <p className="text-sm text-slate-500">{stat.label}</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-950">{stat.value}</p>
-            <p className="mt-2 text-sm text-slate-500">{stat.meta}</p>
+          <div key={stat.label} className={`${cardClass} customer-stat-card`}>
+            <p className="text-[17px] font-bold text-gray-900">{stat.label}</p>
+            <p className="mt-3 text-3xl font-bold text-black">{stat.value}</p>
+            <p className="mt-2 text-sm text-gray-700">{stat.meta}</p>
           </div>
         ))}
       </section>
@@ -66,10 +66,10 @@ export default function Notifications({ notifications, unreadCount }) {
                   <span className={`rounded-full border px-3 py-1 text-xs font-medium capitalize ${getToneClasses(notification.tone)}`}>
                     {notification.type}
                   </span>
-                  <span className="text-xs uppercase tracking-wide text-slate-400">{formatDisplayDate(notification.createdAt)}</span>
+                  <span className="customer-label text-xs uppercase tracking-wide">{formatDisplayDate(notification.createdAt)}</span>
                 </div>
-                <h2 className="mt-4 text-lg font-semibold text-slate-950">{notification.title}</h2>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500">{notification.message}</p>
+                <h2 className="mt-4 text-lg font-bold text-black">{notification.title}</h2>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-700">{notification.message}</p>
               </div>
             </div>
           </article>
@@ -77,8 +77,8 @@ export default function Notifications({ notifications, unreadCount }) {
 
         {notifications.length === 0 ? (
           <div className={`${cardClass} text-center`}>
-            <p className="text-lg font-semibold text-slate-950">All caught up</p>
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+            <p className="text-lg font-bold text-black">All caught up</p>
+            <p className="mt-3 text-sm leading-6 text-gray-700">
               New warranty reminders and service updates will appear here as soon as they are available.
             </p>
           </div>

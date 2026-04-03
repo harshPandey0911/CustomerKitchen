@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { warrantyPeriodOptions } from '../../data/customerOwnership';
 import { APP_NAME } from '../../constants/branding';
 
-const inputClass =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100';
+const inputClass = 'input-field';
+const selectClass = 'input-field';
+const labelClass = 'customer-label mb-2 block text-[16px] font-bold';
 
 const initialFormState = (productOptions) => ({
   productName: productOptions[0]?.name || '',
@@ -43,18 +44,18 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_380px]">
-      <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 lg:p-8">
+      <section className="customer-surface customer-card-item rounded-[28px] p-6 lg:p-8">
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold text-slate-950 lg:text-3xl">Register Product</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
+          <h1 className="customer-page-title text-2xl lg:text-3xl">Register Product</h1>
+          <p className="customer-page-subtext mt-2 text-sm leading-relaxed">
             Add a newly purchased appliance to your ownership dashboard and keep invoice, coverage, and service history together from day one.
           </p>
         </div>
 
-        <form className="mt-8 grid gap-5 md:grid-cols-2" onSubmit={handleSubmit}>
-          <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-slate-700">Product Name</span>
-            <select name="productName" value={form.productName} onChange={handleChange} className={inputClass} required>
+        <form className="customer-section-wrapper mt-8 grid gap-5 md:grid-cols-2" onSubmit={handleSubmit}>
+          <label className="block md:col-span-2">
+            <span className={labelClass}>Product Name</span>
+            <select name="productName" value={form.productName} onChange={handleChange} className={selectClass} required>
               {productOptions.map((option) => (
                 <option key={option.name} value={option.name}>
                   {option.name}
@@ -63,8 +64,8 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
             </select>
           </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Brand</span>
+          <label className="block">
+            <span className={labelClass}>Brand</span>
             <input
               type="text"
               name="brand"
@@ -76,8 +77,8 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
             />
           </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Model Number</span>
+          <label className="block">
+            <span className={labelClass}>Model Number</span>
             <input
               type="text"
               name="modelNumber"
@@ -89,14 +90,14 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
             />
           </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Purchase Date</span>
+          <label className="block">
+            <span className={labelClass}>Purchase Date</span>
             <input type="date" name="purchaseDate" value={form.purchaseDate} onChange={handleChange} className={inputClass} required />
           </label>
 
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Warranty Period</span>
-            <select name="warrantyMonths" value={form.warrantyMonths} onChange={handleChange} className={inputClass} required>
+          <label className="block">
+            <span className={labelClass}>Warranty Period</span>
+            <select name="warrantyMonths" value={form.warrantyMonths} onChange={handleChange} className={selectClass} required>
               {warrantyPeriodOptions.map((period) => (
                 <option key={period} value={period}>
                   {period} months
@@ -105,11 +106,11 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
             </select>
           </label>
 
-          <label className="space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-slate-700">Upload Invoice</span>
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
-              <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} className="w-full text-sm text-slate-500" />
-              <p className="mt-2 text-sm text-slate-500">
+          <label className="block md:col-span-2">
+            <span className={labelClass}>Upload Invoice</span>
+            <div className="customer-soft-surface customer-card-item rounded-2xl border border-dashed px-4 py-5">
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleFileChange} className="file-input-field" />
+              <p className="customer-subheading mt-2 text-sm">
                 {form.invoiceName ? `Selected file: ${form.invoiceName}` : 'Invoice upload is optional. We will store the file name in this mock flow.'}
               </p>
             </div>
@@ -118,29 +119,29 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
           <div className="md:col-span-2 flex flex-wrap items-center gap-3 pt-2">
             <button
               type="submit"
-              className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-black"
+              className="customer-primary-btn rounded-full px-5 py-2.5 text-sm"
             >
               Save Product
             </button>
-            <span className="text-sm text-slate-500">You will be redirected to My Products after saving.</span>
+            <span className="customer-subheading text-sm">You will be redirected to My Products after saving.</span>
           </div>
         </form>
       </section>
 
       <aside className="space-y-4">
-        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
+        <div className="customer-surface customer-card-item overflow-hidden rounded-[28px]">
           <img src={selectedProduct?.image} alt={selectedProduct?.name} className="h-56 w-full object-cover" />
           <div className="space-y-3 p-5">
-            <p className="text-lg font-semibold text-slate-950">{selectedProduct?.name}</p>
-            <p className="text-sm leading-6 text-slate-500">
+            <p className="customer-section-title text-lg font-bold">{selectedProduct?.name}</p>
+            <p className="customer-section-subtext text-sm leading-6">
               A quick preview keeps product registration grounded and helps users confirm they are adding the correct appliance.
             </p>
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60">
-          <h2 className="text-lg font-semibold text-slate-950">Why register?</h2>
-          <div className="mt-4 space-y-4 text-sm leading-6 text-slate-500">
+        <div className="customer-surface customer-card-item rounded-[28px] p-5">
+          <h2 className="customer-section-title text-lg font-bold">Why register?</h2>
+          <div className="customer-section-subtext mt-4 space-y-4 text-sm leading-6">
             <p>Track every warranty with a clear expiry date and visual usage bar.</p>
             <p>Raise service requests faster because appliance details are already attached.</p>
             <p>Receive proactive alerts when warranty coverage is about to expire.</p>

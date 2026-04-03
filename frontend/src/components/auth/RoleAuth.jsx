@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getLoginRouteConfig, saveDummyLoginSession } from '../../services/authSession';
-import { APP_DOMAIN, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
+import { APP_DOMAIN, APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
 
 const ACCOUNT_STORAGE_KEY = `${APP_STORAGE_PREFIX}UnifiedRoleAccounts`;
 
@@ -17,8 +17,7 @@ const initialRegisterForm = {
   password: '',
 };
 
-const inputClass =
-  'w-full rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 outline-none transition-all duration-200 placeholder:text-gray-400 focus:ring-2 focus:ring-black';
+const inputClass = 'input-field';
 
 const readAccounts = () => {
   try {
@@ -46,28 +45,28 @@ export default function RoleAuth({ initialMode = 'login' }) {
   const location = useLocation();
   const navigate = useNavigate();
   const config = useMemo(() => getLoginRouteConfig(location.pathname), [location.pathname]);
-  const isCustomerLoginRoute = location.pathname === '/customer/login';
   const [activeMode, setActiveMode] = useState(initialMode);
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [registerForm, setRegisterForm] = useState(initialRegisterForm);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const canRegister = config.role === 'customer';
+  const currentMode = canRegister ? activeMode : 'login';
 
   useEffect(() => {
-    setActiveMode(initialMode);
+    setActiveMode(canRegister ? initialMode : 'login');
     setErrors({});
-  }, [initialMode]);
+  }, [canRegister, initialMode]);
 
-  const subtitle = `${config.label} ${activeMode === 'login' ? 'Login' : 'Register'}`;
-  const isCustomerRole = config.role === 'customer';
+  const subtitle = `${config.label} ${currentMode === 'register' ? 'Register' : 'Login'}`;
 
   const switchMode = (nextMode) => {
-    setErrors({});
-    setActiveMode(nextMode);
-
-    if (!isCustomerRole) {
+    if (!canRegister) {
       return;
     }
+
+    setErrors({});
+    setActiveMode(nextMode);
 
     navigate(nextMode === 'login' ? getCustomerLoginRoute(location.pathname) : '/signup');
   };
@@ -186,7 +185,7 @@ export default function RoleAuth({ initialMode = 'login' }) {
       setErrors({});
       setActiveMode('login');
 
-      if (isCustomerRole) {
+      if (canRegister) {
         navigate(getCustomerLoginRoute(location.pathname));
       }
 
@@ -200,37 +199,40 @@ export default function RoleAuth({ initialMode = 'login' }) {
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full">
         <div
-          className={`mx-auto w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl transition duration-200 hover:shadow-2xl ${
-            isCustomerLoginRoute ? 'border-2 border-black ring-1 ring-black/60' : 'border-2 border-black'
-          }`}
+          className="mx-auto w-full max-w-sm rounded-2xl border border-black/70 bg-white p-8"
         >
-          <div className="space-y-2">
-            <p className="text-2xl font-semibold text-gray-900">{APP_NAME}</p>
-            <p className="text-sm text-gray-500">{subtitle}</p>
-          </div>
-
-          <div className="mt-6 flex rounded-lg bg-gray-100 p-1">
-            <div className="grid w-full grid-cols-2 gap-1">
-              {[
-                { id: 'login', label: 'Login' },
-                { id: 'register', label: 'Register' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => switchMode(tab.id)}
-                  className={`rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                    activeMode === tab.id ? 'bg-white text-black shadow' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+          <div className="mb-6 flex items-center gap-3">
+            <img src={APP_LOGO} alt={`${APP_NAME} logo`} className="h-10 w-10 object-contain" />
+            <div>
+              <h1 className="text-xl font-bold text-black">{APP_NAME}</h1>
+              <p className="text-sm text-gray-500">{subtitle}</p>
             </div>
           </div>
 
-          {activeMode === 'login' ? (
-            <form className="mt-6 space-y-4" onSubmit={handleLoginSubmit}>
+          {canRegister ? (
+            <div className="flex rounded-lg bg-gray-100 p-1">
+              <div className="grid w-full grid-cols-2 gap-1">
+                {[
+                  { id: 'login', label: 'Login' },
+                  { id: 'register', label: 'Register' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => switchMode(tab.id)}
+                    className={`rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                      currentMode === tab.id ? 'bg-white text-black shadow' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {currentMode === 'login' ? (
+            <form className={`${canRegister ? 'mt-6' : 'mt-8'} space-y-4`} onSubmit={handleLoginSubmit}>
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">Email</label>
                 <input
@@ -325,6 +327,11 @@ export default function RoleAuth({ initialMode = 'login' }) {
               </button>
             </form>
           )}
+
+          <p className="mt-6 px-4 text-center text-xs text-gray-400">
+            By continuing, you agree to our <span className="font-medium text-gray-700">Terms &amp; Conditions</span>{' '}
+            and Privacy Policy.
+          </p>
         </div>
       </div>
     </div>

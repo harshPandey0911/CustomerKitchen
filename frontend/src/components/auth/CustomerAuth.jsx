@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { saveDummyLoginSession } from '../../services/authSession';
-import { APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
+import { APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
 
 const ACCOUNT_STORAGE_KEY = `${APP_STORAGE_PREFIX}CustomerAccounts`;
 const PREFILL_EMAIL_KEY = `${APP_STORAGE_PREFIX}CustomerPrefillEmail`;
@@ -44,31 +44,6 @@ const writeAccounts = (accounts) => {
 
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-const KitchenApplianceMark = () => (
-  <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24">
-    <path
-      d="M6 5h12l1 3v2a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V8l1-3Z"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-    />
-    <path
-      d="M8.5 13v3.5A2.5 2.5 0 0 0 11 19h2a2.5 2.5 0 0 0 2.5-2.5V13"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.8"
-    />
-    <path
-      d="M9 8h6M7.5 3.75h9"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.8"
-    />
-  </svg>
-);
-
 const AuthField = ({
   label,
   icon: Icon,
@@ -79,16 +54,12 @@ const AuthField = ({
   <div>
     <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
     <div
-      className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-3 transition ${
-        error
-          ? 'border-red-300 ring-4 ring-red-50'
-          : 'border-gray-300 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100'
-      }`}
+      className={`input-shell ${error ? 'input-shell-error' : ''}`}
     >
       <Icon className="h-5 w-5 shrink-0 text-gray-400" />
       <input
         {...inputProps}
-        className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+        className="input-field no-border"
       />
       {trailing}
     </div>
@@ -252,8 +223,8 @@ const CustomerAuth = ({ mode = 'login' }) => {
 
             <div className="relative z-10 flex h-full flex-col justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
-                  <KitchenApplianceMark />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 p-2 backdrop-blur-sm">
+                  <img src={APP_LOGO} alt={`${APP_NAME} logo`} className="h-full w-full object-contain" />
                 </div>
                 <div>
                   <p className="text-base font-semibold">{APP_NAME}</p>
@@ -461,8 +432,8 @@ const CustomerAuth = ({ mode = 'login' }) => {
               )}
             </div>
 
-            <p className="mt-6 text-center text-xs leading-5 text-gray-400">
-              {`By continuing, you agree to ${APP_NAME}'s Terms and Privacy Policy.`}
+            <p className="mt-6 px-4 text-center text-xs leading-5 text-gray-400">
+              By continuing, you agree to our <span className="font-medium text-gray-700">Terms &amp; Conditions</span> and Privacy Policy.
             </p>
           </div>
         </div>

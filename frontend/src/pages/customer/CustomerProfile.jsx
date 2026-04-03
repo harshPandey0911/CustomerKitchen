@@ -1,6 +1,6 @@
 import { APP_NAME } from '../../constants/branding';
 
-const cardClass = 'rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60';
+const cardClass = 'customer-surface customer-card-item rounded-[28px] p-5';
 
 export default function CustomerProfile({ products, serviceRequests, unreadCount, onNavigate }) {
   const openRequests = serviceRequests.filter((request) => request.status !== 'Completed').length;
@@ -36,59 +36,59 @@ export default function CustomerProfile({ products, serviceRequests, unreadCount
   return (
     <div className="space-y-6 lg:space-y-8">
       <section className="grid gap-4 md:grid-cols-3">
-        <div className={cardClass}>
-          <p className="text-sm text-slate-500">Registered Products</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-950">{products.length}</p>
-          <p className="mt-2 text-sm text-slate-500">Appliances currently tracked</p>
+        <div className={`${cardClass} customer-stat-card`}>
+          <p className="text-[17px] font-bold text-gray-900">Registered Products</p>
+          <p className="mt-3 text-3xl font-bold text-black">{products.length}</p>
+          <p className="mt-2 text-sm text-gray-700">Appliances currently tracked</p>
         </div>
-        <div className={cardClass}>
-          <p className="text-sm text-slate-500">Open Service Requests</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-950">{openRequests}</p>
-          <p className="mt-2 text-sm text-slate-500">Requests still waiting on completion</p>
+        <div className={`${cardClass} customer-stat-card`}>
+          <p className="text-[17px] font-bold text-gray-900">Open Service Requests</p>
+          <p className="mt-3 text-3xl font-bold text-black">{openRequests}</p>
+          <p className="mt-2 text-sm text-gray-700">Requests still waiting on completion</p>
         </div>
-        <div className={cardClass}>
-          <p className="text-sm text-slate-500">Unread Notifications</p>
-          <p className="mt-3 text-3xl font-semibold text-slate-950">{unreadCount}</p>
-          <p className="mt-2 text-sm text-slate-500">Fresh alerts across warranty and service</p>
+        <div className={`${cardClass} customer-stat-card`}>
+          <p className="text-[17px] font-bold text-gray-900">Unread Notifications</p>
+          <p className="mt-3 text-3xl font-bold text-black">{unreadCount}</p>
+          <p className="mt-2 text-sm text-gray-700">Fresh alerts across warranty and service</p>
         </div>
       </section>
 
       <section className="grid gap-5 xl:grid-cols-2">
         <div className={cardClass}>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Account</p>
-          <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200">
+          <p className="customer-label text-xs font-semibold uppercase tracking-[0.28em]">Account</p>
+          <div className="customer-section-wrapper mt-5 space-y-3">
             {accountActions.map((action) => (
               <button
                 key={action.label}
                 type="button"
                 onClick={() => onNavigate(action.path)}
-                className="flex w-full items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 text-left transition-colors duration-200 last:border-b-0 hover:bg-slate-50"
+                className="customer-card-item customer-card-row flex w-full text-left"
               >
                 <div>
-                  <p className="font-medium text-slate-950">{action.label}</p>
-                  <p className="mt-1 text-sm text-slate-500">{action.meta}</p>
+                  <p className="customer-section-title text-[15px] font-semibold">{action.label}</p>
+                  <p className="customer-section-subtext mt-1 text-sm">{action.meta}</p>
                 </div>
-                <span className="text-slate-300">&gt;</span>
+                <span className="customer-card-arrow">&gt;</span>
               </button>
             ))}
           </div>
         </div>
 
         <div className={cardClass}>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Support</p>
-          <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200">
+          <p className="customer-label text-xs font-semibold uppercase tracking-[0.28em]">Support</p>
+          <div className="customer-section-wrapper mt-5 space-y-3">
             {supportActions.map((action) => (
               <button
                 key={action.label}
                 type="button"
                 onClick={() => onNavigate(action.path)}
-                className="flex w-full items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 text-left transition-colors duration-200 last:border-b-0 hover:bg-slate-50"
+                className="customer-card-item customer-card-row flex w-full text-left"
               >
                 <div>
-                  <p className="font-medium text-slate-950">{action.label}</p>
-                  <p className="mt-1 text-sm text-slate-500">{action.meta}</p>
+                  <p className="customer-section-title text-[15px] font-semibold">{action.label}</p>
+                  <p className="customer-section-subtext mt-1 text-sm">{action.meta}</p>
                 </div>
-                <span className="text-slate-300">&gt;</span>
+                <span className="customer-card-arrow">&gt;</span>
               </button>
             ))}
           </div>

@@ -62,7 +62,7 @@ const VerifyOtp = () => {
       <div className="w-full max-w-md">
 
         {/* Card */}
-        <div className="rounded-2xl border-2 border-black bg-white p-8 shadow-xl transition duration-200 hover:shadow-2xl">
+        <div className="rounded-2xl border border-black/70 bg-white p-8">
 
           {/* Header */}
           <div className="mb-8">

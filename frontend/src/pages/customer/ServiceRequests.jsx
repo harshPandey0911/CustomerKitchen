@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { formatDisplayDate, serviceIssueTypes } from '../../data/customerOwnership';
 
-const inputClass =
-  'w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100';
+const inputClass = 'input-field';
+const selectClass = 'input-field';
+const labelClass = 'customer-label mb-2 block text-[16px] font-bold';
 
-const cardClass = 'rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60';
+const cardClass = 'customer-surface customer-card-item rounded-[28px] p-5';
 
 const getStatusBadgeClass = (status) => {
   if (status === 'Completed') {
-    return 'bg-emerald-50 text-emerald-700';
+    return 'customer-badge';
   }
 
   if (status === 'In Progress') {
-    return 'bg-amber-50 text-amber-700';
+    return 'customer-badge-soft';
   }
 
-  return 'bg-slate-100 text-slate-700';
+  return 'customer-badge-deep';
 };
 
 const getInitialForm = (products) => ({
@@ -84,8 +85,8 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
       <div className="space-y-6 lg:space-y-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-950 lg:text-3xl">Service Requests</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <h1 className="customer-page-title text-2xl lg:text-3xl">Service Requests</h1>
+            <p className="customer-page-subtext mt-2 max-w-2xl text-sm leading-relaxed">
               Log appliance issues quickly and keep the full service timeline visible, from request intake through technician completion.
             </p>
           </div>
@@ -93,7 +94,7 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
             type="button"
             onClick={openModal}
             disabled={products.length === 0}
-            className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+            className="customer-primary-btn rounded-full px-5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             Raise Request
           </button>
@@ -101,14 +102,14 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
 
         {products.length === 0 ? (
           <div className={`${cardClass} text-center`}>
-            <p className="text-lg font-semibold text-slate-950">Register a product before requesting service</p>
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+            <p className="customer-heading text-lg font-bold">Register a product before requesting service</p>
+            <p className="customer-subheading mt-3 text-sm leading-6">
               Service requests are tied to owned appliances, so start by adding at least one registered product to your dashboard.
             </p>
             <button
               type="button"
               onClick={() => onNavigate('/customer/register-product')}
-              className="mt-6 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-black"
+              className="customer-primary-btn mt-6 rounded-full px-5 py-2.5 text-sm"
             >
               Register Product
             </button>
@@ -117,10 +118,10 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
 
         <section className="grid gap-4 md:grid-cols-3">
           {stats.map((stat) => (
-            <div key={stat.label} className={cardClass}>
-              <p className="text-sm text-slate-500">{stat.label}</p>
-              <p className="mt-3 text-3xl font-semibold text-slate-950">{stat.value}</p>
-              <p className="mt-2 text-sm text-slate-500">{stat.meta}</p>
+            <div key={stat.label} className={`${cardClass} customer-stat-card`}>
+              <p className="customer-heading text-[17px] font-bold">{stat.label}</p>
+              <p className="customer-heading mt-3 text-3xl font-bold">{stat.value}</p>
+              <p className="customer-subheading mt-2 text-sm">{stat.meta}</p>
             </div>
           ))}
         </section>
@@ -130,29 +131,29 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
             <article key={request.id} className={cardClass}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-lg font-semibold text-slate-950">{request.productName}</p>
-                  <p className="mt-1 text-sm text-slate-500">{request.issueType} / {request.id}</p>
+                  <p className="customer-section-title text-lg font-bold">{request.productName}</p>
+                  <p className="customer-section-subtext mt-1 text-sm">{request.issueType} / {request.id}</p>
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusBadgeClass(request.status)}`}>
                   {request.status}
                 </span>
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-slate-500">{request.description}</p>
+              <p className="customer-section-subtext mt-4 text-sm leading-6">{request.description}</p>
 
-              <div className="mt-5 grid gap-3 text-sm text-slate-500 sm:grid-cols-2">
-                <div className="rounded-2xl bg-slate-50 p-3">
+              <div className="customer-subheading mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="customer-soft-surface customer-card-item rounded-2xl p-3">
                   <p className="text-xs uppercase tracking-wide text-slate-400">Created</p>
-                  <p className="mt-2 font-medium text-slate-800">{formatDisplayDate(request.createdAt)}</p>
+                  <p className="customer-heading mt-2 font-medium">{formatDisplayDate(request.createdAt)}</p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
+                <div className="customer-soft-surface customer-card-item rounded-2xl p-3">
                   <p className="text-xs uppercase tracking-wide text-slate-400">Assigned Technician</p>
-                  <p className="mt-2 font-medium text-slate-800">{request.assignedTechnician}</p>
+                  <p className="customer-heading mt-2 font-medium">{request.assignedTechnician}</p>
                 </div>
               </div>
 
               {request.imageName ? (
-                <p className="mt-4 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+                <p className="customer-chip mt-4 inline-flex rounded-full px-3 py-1 text-xs">
                   Attachment: {request.imageName}
                 </p>
               ) : null}
@@ -162,19 +163,19 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
       </div>
 
       {isModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="flex h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 md:max-w-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3E2C23]/35 p-4">
+          <div className="customer-surface customer-card-item flex h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl shadow-2xl md:max-w-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 md:p-5">
               <div>
-                <h2 className="text-xl font-semibold text-slate-950">Raise Service Request</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <h2 className="customer-page-title text-xl font-bold">Raise Service Request</h2>
+                <p className="customer-page-subtext mt-2 text-sm leading-relaxed">
                   Tell us what went wrong and we will add the request to your service timeline instantly.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-50"
+                className="customer-secondary-btn rounded-full px-3 py-1 text-sm"
               >
                 Close
               </button>
@@ -182,10 +183,10 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
 
             <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
               <div className="flex-1 overflow-y-auto p-4 pb-6 md:p-5">
-                <div className="grid gap-5 md:grid-cols-2">
-                  <label className="space-y-2 md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Select Product</span>
-                    <select name="productId" value={form.productId} onChange={handleChange} className={inputClass} required>
+                <div className="customer-section-wrapper grid gap-5 md:grid-cols-2">
+                  <label className="block md:col-span-2">
+                    <span className={labelClass}>Select Product</span>
+                    <select name="productId" value={form.productId} onChange={handleChange} className={selectClass} required>
                       {products.map((product) => (
                         <option key={product.id} value={product.id}>
                           {product.productName} / {product.brand}
@@ -194,9 +195,9 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
                     </select>
                   </label>
 
-                  <label className="space-y-2 md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Issue Type</span>
-                    <select name="issueType" value={form.issueType} onChange={handleChange} className={inputClass} required>
+                  <label className="block md:col-span-2">
+                    <span className={labelClass}>Issue Type</span>
+                    <select name="issueType" value={form.issueType} onChange={handleChange} className={selectClass} required>
                       {serviceIssueTypes.map((issueType) => (
                         <option key={issueType} value={issueType}>
                           {issueType}
@@ -205,8 +206,8 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
                     </select>
                   </label>
 
-                  <label className="space-y-2 md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Description</span>
+                  <label className="block md:col-span-2">
+                    <span className={labelClass}>Description</span>
                     <textarea
                       name="description"
                       value={form.description}
@@ -218,11 +219,11 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
                     />
                   </label>
 
-                  <label className="space-y-2 md:col-span-2">
-                    <span className="text-sm font-medium text-slate-700">Upload Image</span>
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
-                      <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="w-full text-sm text-slate-500" />
-                      <p className="mt-2 text-sm text-slate-500">
+                  <label className="block md:col-span-2">
+                    <span className={labelClass}>Upload Image</span>
+                    <div className="customer-soft-surface customer-card-item rounded-2xl border border-dashed px-4 py-5">
+                      <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="file-input-field" />
+                      <p className="customer-subheading mt-2 text-sm">
                         {form.imageName ? `Selected file: ${form.imageName}` : 'Optional, but helpful for faster troubleshooting.'}
                       </p>
                     </div>
@@ -234,14 +235,14 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="flex-1 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-black"
+                    className="customer-primary-btn flex-1 rounded-lg px-5 py-2.5 text-sm"
                   >
                     Submit Request
                   </button>
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 rounded-lg bg-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-300"
+                    className="customer-secondary-btn flex-1 rounded-lg px-5 py-2.5 text-sm"
                   >
                     Cancel
                   </button>

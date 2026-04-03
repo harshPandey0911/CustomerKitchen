@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
-const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100';
+const inputClass = 'input-field';
+const labelClass = 'customer-label mb-2 block text-[16px] font-bold';
+
+const stripCountryCode = (value = '') => value.replace(/^\+?91[\s-]*/, '');
 
 const getInitialForm = (profile) => ({
   fullName: profile?.fullName || '',
   email: profile?.email || '',
-  phone: profile?.phone || '',
+  phone: stripCountryCode(profile?.phone || ''),
 });
 
 export default function EditProfile({ profile, onSubmit, onCancel }) {
@@ -21,29 +23,37 @@ export default function EditProfile({ profile, onSubmit, onCancel }) {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
+  const handlePhoneChange = (event) => {
+    const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm((current) => ({ ...current, phone: digitsOnly }));
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    onSubmit(form);
+    onSubmit({
+      ...form,
+      phone: form.phone.trim() ? `+91 ${form.phone.trim()}` : '',
+    });
   };
 
   const profileInitial = form.fullName.trim().charAt(0).toUpperCase() || 'C';
 
   return (
     <div className="mx-auto max-w-md">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+      <div className="customer-surface rounded-xl p-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-lg font-semibold text-white">
+          <div className="customer-avatar-btn flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white">
             {profileInitial}
           </div>
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold text-slate-950">Edit Profile</h1>
-            <p className="text-sm text-slate-500">Update your customer details and save them back to your profile.</p>
+            <h1 className="customer-heading text-xl font-bold">Edit Profile</h1>
+            <p className="customer-subheading text-sm">Update your customer details and save them back to your profile.</p>
           </div>
         </div>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Full Name</span>
+          <label className="block">
+            <span className={labelClass}>Full Name</span>
             <input
               type="text"
               name="fullName"
@@ -55,8 +65,8 @@ export default function EditProfile({ profile, onSubmit, onCancel }) {
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Email</span>
+          <label className="block">
+            <span className={labelClass}>Email</span>
             <input
               type="email"
               name="email"
@@ -68,29 +78,33 @@ export default function EditProfile({ profile, onSubmit, onCancel }) {
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-700">Phone</span>
-            <input
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              className={inputClass}
-              placeholder="Optional phone number"
-            />
+          <label className="block">
+            <span className={labelClass}>Phone</span>
+            <div className="input-group">
+              <span>+91</span>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handlePhoneChange}
+                className="input-field no-border"
+                placeholder="Optional phone number"
+                inputMode="numeric"
+              />
+            </div>
           </label>
 
           <div className="mt-4 flex gap-3">
             <button
               type="submit"
-              className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-slate-900"
+              className="customer-primary-btn rounded-md px-4 py-2 text-sm"
             >
               Save
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-black transition-colors duration-200 hover:bg-gray-300"
+              className="customer-secondary-btn rounded-md px-4 py-2 text-sm"
             >
               Cancel
             </button>

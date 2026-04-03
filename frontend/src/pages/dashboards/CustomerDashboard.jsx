@@ -310,20 +310,20 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,_#f8fafc_0%,_#f1f5f9_100%)]">
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-4 md:px-6 lg:px-8">
+    <div className="customer-panel min-h-screen">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-4 pt-0 md:px-6 md:pb-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
             <div className="sticky top-4 space-y-4">
-              <div className="overflow-hidden rounded-[32px] bg-slate-950 p-6 text-white shadow-lg shadow-slate-300/40">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-300">{APP_NAME}</p>
+              <div className="customer-hero overflow-hidden rounded-[32px] p-6 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/65">{APP_NAME}</p>
                 <h2 className="mt-4 text-2xl font-semibold leading-tight">Customer Panel</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
+                <p className="mt-3 text-sm leading-6 text-white/75">
                   A premium appliance ownership view for warranty tracking, service intake, and product history.
                 </p>
               </div>
 
-              <nav className="rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60">
+              <nav className="customer-nav-shell rounded-[28px] p-3">
                 {navItems.map((item) => {
                   const active = item.id === activeNavId;
                   return (
@@ -331,46 +331,44 @@ const CustomerDashboard = () => {
                       key={item.id}
                       type="button"
                       onClick={() => navigateWithScroll(item.path)}
-                      className={`mb-2 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all duration-200 last:mb-0 ${
-                        active
-                          ? 'bg-slate-950 text-white shadow-sm'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'
+                      className={`customer-nav-item mb-2 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all duration-200 last:mb-0 ${
+                        active ? 'customer-nav-item-active shadow-sm' : ''
                       }`}
                     >
-                      <span className={active ? 'text-white' : 'text-slate-400'}>{renderIcon(item.icon)}</span>
+                      <span className={active ? 'customer-nav-icon-active' : 'customer-nav-icon'}>{renderIcon(item.icon)}</span>
                       <span className="text-sm font-medium">{item.label}</span>
                     </button>
                   );
                 })}
               </nav>
 
-              <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/60">
-                <p className="text-sm font-semibold text-slate-950">Need help?</p>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+              <div className="customer-surface rounded-[28px] p-5">
+                <p className="customer-heading text-sm font-semibold">Need help?</p>
+                <p className="customer-subheading mt-2 text-sm leading-6">
                   Support and About stay one click away inside Profile, so the ownership workflow never feels disconnected.
                 </p>
               </div>
             </div>
           </aside>
 
-          <div className="min-w-0 space-y-4 md:space-y-6">
-            <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between bg-white px-6 shadow-sm">
-              <div className="flex items-center justify-between gap-4 w-full">
+          <div className="min-w-0">
+            <div className="customer-topbar fixed left-0 top-0 z-50 w-full">
+              <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-3 md:px-6 lg:px-8">
                 <div className="min-w-0">
-                  <p className="text-lg font-semibold text-slate-950">{APP_NAME}</p>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-400">Product Dashboard</p>
+                  <p className="customer-logo-text text-[18px] font-bold tracking-tight">{APP_NAME}</p>
+                  <p className="customer-subheading text-sm font-medium">Product Dashboard</p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => navigateWithScroll('/customer/notifications')}
-                    className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-all duration-200 hover:scale-105 hover:text-indigo-600"
+                    className="customer-icon-button relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-105"
                     aria-label="Open notifications"
                   >
                     {renderIcon('notifications')}
                     {unreadCount > 0 ? (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#6B4F3B] px-1 text-[10px] font-semibold text-white">
                         {unreadCount}
                       </span>
                     ) : null}
@@ -380,25 +378,25 @@ const CustomerDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setOpenProfile((current) => !current)}
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white transition-all duration-200 hover:scale-105"
+                      className="customer-avatar-btn flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105"
                       aria-label="Open profile menu"
                     >
                       {userName.charAt(0).toUpperCase()}
                     </button>
 
                     {openProfile ? (
-                      <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg z-50 transition-all duration-200">
+                      <div className="customer-surface absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-xl transition-all duration-200">
                         <button
                           type="button"
                           onClick={() => navigateWithScroll('/customer/profile/edit')}
-                          className="w-full px-4 py-2 text-left text-sm text-slate-700 transition-colors duration-200 hover:bg-gray-100"
+                          className="customer-subheading w-full px-4 py-2 text-left text-sm transition-colors duration-200 hover:bg-[#FAF7F4]"
                         >
                           Edit Profile
                         </button>
                         <button
                           type="button"
                           onClick={handleLogout}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 transition-colors duration-200 hover:bg-red-100"
+                          className="w-full px-4 py-2 text-left text-sm text-[#6B4F3B] transition-colors duration-200 hover:bg-[#FAF7F4]"
                         >
                           Logout
                         </button>
@@ -406,31 +404,50 @@ const CustomerDashboard = () => {
                     ) : null}
                   </div>
                 </div>
-              </div>
-            </header>
+              </header>
+            </div>
 
-            <main className="pb-24 lg:pb-6">
+            <main className="pt-[80px] pb-28 lg:pb-6">
               <div className="transition-all duration-300">{renderPage()}</div>
             </main>
           </div>
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden">
-        <nav className="grid grid-cols-5 px-1 py-2">
+      <div className="customer-floating-nav fixed bottom-4 left-1/2 z-[999] w-[90%] max-w-[420px] -translate-x-1/2 rounded-[40px] px-2 py-2.5 lg:hidden">
+        <nav className="flex w-full items-end justify-between gap-0">
           {mobileNavItems.map((item) => {
             const active = item.id === activeNavId;
+            const isCenterAction = item.id === 'register';
+
+            if (isCenterAction) {
+              return (
+                <div key={item.id} className="customer-floating-nav-center-slot">
+                  <button
+                    type="button"
+                    onClick={() => navigateWithScroll(item.path)}
+                    className={`customer-floating-nav-center-btn ${active ? 'customer-floating-nav-center-btn-active' : ''}`}
+                    aria-label={item.label}
+                  >
+                    {renderIcon(item.icon)}
+                  </button>
+                </div>
+              );
+            }
+
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => navigateWithScroll(item.path)}
-                className={`flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] transition-all duration-200 ${
-                  active ? 'text-slate-950' : 'text-slate-400'
+                className={`customer-floating-nav-item rounded-full px-1 text-[11px] transition-all duration-300 ${
+                  active ? 'customer-floating-nav-item-active font-medium' : ''
                 }`}
               >
-                <span className={active ? 'text-slate-950' : 'text-slate-400'}>{renderIcon(item.icon)}</span>
-                <span>{item.mobileLabel}</span>
+                <span className="customer-floating-nav-icon-wrap flex h-5 items-center justify-center">
+                  {renderIcon(item.icon)}
+                </span>
+                <span className="customer-floating-nav-label text-[11px]">{item.mobileLabel}</span>
               </button>
             );
           })}
