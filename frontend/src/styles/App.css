@@ -140,6 +140,10 @@ body.modal-open {
   box-shadow: none !important;
 }
 
+.customer-auth-page .customer-auth-underline:focus-within .auth-input-icon {
+  color: #5C3A21 !important;
+}
+
 .customer-auth-page .customer-auth-underline-error {
   border-bottom: 2px solid #C89A82 !important;
 }
@@ -437,15 +441,19 @@ body.modal-open {
   --kitchen-accent: #facc15;
   --kitchen-dark: #1f2937;
   --kitchen-light: #f3f4f6;
+  /* Default customer panel colors - blue theme */
+  --customer-primary: #0891b2;
+  --customer-dark: #0e7490;
+  --customer-light: #cffafe;
+  --customer-accent: #06b6d4;
+  --customer-bg: #f8f6f6;
+  --customer-card: #ffffff;
+  --customer-border: #e0e7ff;
+  --customer-text: #1f2937;
+  --customer-muted: #6b7280;
+  --customer-soft: #f0f9ff;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Scrollbar styling - HIDDEN */
 ::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
@@ -645,11 +653,10 @@ textarea.input-field {
   color: #ffffff;
   padding: 10px 14px;
   font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-:root {
+/* Auth-specific colors - brown theme for login/signup */
+.customer-auth-page {
   --customer-primary: #6b4226;
   --customer-dark: #4a2f1e;
   --customer-light: #d2b48c;
@@ -660,6 +667,12 @@ textarea.input-field {
   --customer-text: #2c2c2c;
   --customer-muted: #8b8b8b;
   --customer-soft: #faf6f1;
+}
+
+.customer-auth-page {
+  --auth-primary: #6b4226;
+  --auth-dark: #4a2f1e;
+  --auth-accent: #8b5e3c;
 }
 
 .customer-panel {

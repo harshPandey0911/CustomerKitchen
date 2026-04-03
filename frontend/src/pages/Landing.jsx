@@ -188,7 +188,7 @@ const testimonials = [
 
 const categories = ['all', 'cookware', 'knives', 'appliances', 'storage', 'accessories']
 
-function App() {
+function Landing() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -569,4 +569,4 @@ function App() {
   )
 }
 
-export default App
+export default Landing

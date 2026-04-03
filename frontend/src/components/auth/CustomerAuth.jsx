@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from 'react-icons/fi';
-import { AiFillEye, AiFillEyeOff, AiFillLock, AiFillMail, AiFillUser } from 'react-icons/ai';
 import toast from 'react-hot-toast';
 import { saveDummyLoginSession } from '../../services/authSession';
 import { APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
@@ -40,34 +39,21 @@ const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const UnderlineField = ({
   label,
   icon: Icon,
-  iconFilled: IconFilled,
   error,
   trailing,
-  isFocused = false,
-  onFocus,
-  onBlur,
   ...inputProps
 }) => {
-  const activeIcon = isFocused && IconFilled ? IconFilled : Icon;
-  const iconClass = `auth-input-icon h-5 w-5 shrink-0 transition-all duration-300 ${
-    isFocused 
-      ? 'text-[#8B5E3C] scale-110' 
-      : error 
-        ? 'text-[#C89A82]' 
-        : 'text-[#B8A899]'
+  const iconClass = `auth-input-icon h-5 w-5 shrink-0 transition-colors duration-300 ${
+    error ? 'text-[#C89A82]' : 'text-[#B8A899]'
   }`;
   
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-[#5C3A21]">{label}</label>
-      <div
-        className={`customer-auth-underline flex items-center gap-3 bg-transparent pb-1 transition-all duration-200 ${error && !isFocused ? 'customer-auth-underline-error' : ''}`}
-      >
-        {React.createElement(activeIcon, { className: iconClass })}
+      <div className={`customer-auth-underline flex items-center gap-3 bg-transparent pb-1 transition-all duration-200 ${error ? 'customer-auth-underline-error' : ''}`}>
+        <Icon className={iconClass} />
         <input
           {...inputProps}
-          onFocus={onFocus}
-          onBlur={onBlur}
           className="w-full border-0 bg-transparent py-3 text-[15px] text-[#2c2c2c] placeholder:text-[#B8A899] focus:outline-none"
         />
         {trailing}
@@ -295,7 +281,6 @@ const CustomerAuth = ({ mode = 'login' }) => {
               <UnderlineField
                 label="Email"
                 icon={FiMail}
-                iconFilled={AiFillMail}
                 type="email"
                 inputMode="email"
                 autoComplete="email"
@@ -306,15 +291,11 @@ const CustomerAuth = ({ mode = 'login' }) => {
                   setLoginErrors((current) => ({ ...current, email: '', auth: '' }));
                 }}
                 error={loginErrors.email}
-                isFocused={focusedLoginField === 'email'}
-                onFocus={() => setFocusedLoginField('email')}
-                onBlur={() => setFocusedLoginField(null)}
               />
 
               <UnderlineField
                 label="Password"
                 icon={FiLock}
-                iconFilled={AiFillLock}
                 type={showLoginPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 placeholder="Enter your password"
@@ -324,9 +305,6 @@ const CustomerAuth = ({ mode = 'login' }) => {
                   setLoginErrors((current) => ({ ...current, password: '', auth: '' }));
                 }}
                 error={loginErrors.password}
-                isFocused={focusedLoginField === 'password'}
-                onFocus={() => setFocusedLoginField('password')}
-                onBlur={() => setFocusedLoginField(null)}
                 trailing={(
                   <button
                     type="button"
@@ -372,7 +350,6 @@ const CustomerAuth = ({ mode = 'login' }) => {
               <UnderlineField
                 label="Full Name"
                 icon={FiUser}
-                iconFilled={AiFillUser}
                 type="text"
                 autoComplete="name"
                 placeholder="Enter your full name"
@@ -382,15 +359,11 @@ const CustomerAuth = ({ mode = 'login' }) => {
                   setSignupErrors((current) => ({ ...current, name: '' }));
                 }}
                 error={signupErrors.name}
-                isFocused={focusedSignupField === 'name'}
-                onFocus={() => setFocusedSignupField('name')}
-                onBlur={() => setFocusedSignupField(null)}
               />
 
               <UnderlineField
                 label="Email"
                 icon={FiMail}
-                iconFilled={AiFillMail}
                 type="email"
                 inputMode="email"
                 autoComplete="email"
@@ -401,15 +374,11 @@ const CustomerAuth = ({ mode = 'login' }) => {
                   setSignupErrors((current) => ({ ...current, email: '' }));
                 }}
                 error={signupErrors.email}
-                isFocused={focusedSignupField === 'email'}
-                onFocus={() => setFocusedSignupField('email')}
-                onBlur={() => setFocusedSignupField(null)}
               />
 
               <UnderlineField
                 label="Password"
                 icon={FiLock}
-                iconFilled={AiFillLock}
                 type={showSignupPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 placeholder="Create a password"
@@ -419,9 +388,6 @@ const CustomerAuth = ({ mode = 'login' }) => {
                   setSignupErrors((current) => ({ ...current, password: '' }));
                 }}
                 error={signupErrors.password}
-                isFocused={focusedSignupField === 'password'}
-                onFocus={() => setFocusedSignupField('password')}
-                onBlur={() => setFocusedSignupField(null)}
                 trailing={(
                   <button
                     type="button"
