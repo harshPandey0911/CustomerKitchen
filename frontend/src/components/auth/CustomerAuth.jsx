@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaFacebookF } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
-import {
-  FiEye,
-  FiEyeOff,
-  FiLock,
-  FiMail,
-  FiUser,
-} from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { saveDummyLoginSession } from '../../services/authSession';
 import { APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
@@ -44,26 +36,26 @@ const writeAccounts = (accounts) => {
 
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-const AuthField = ({
+const UnderlineField = ({
   label,
   icon: Icon,
   error,
   trailing,
   ...inputProps
 }) => (
-  <div>
-    <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-[#5C3A21]">{label}</label>
     <div
-      className={`input-shell ${error ? 'input-shell-error' : ''}`}
+      className={`customer-auth-underline flex items-center gap-3 bg-transparent pb-1 transition-all duration-200 ${error ? 'customer-auth-underline-error' : ''}`}
     >
-      <Icon className="h-5 w-5 shrink-0 text-gray-400" />
+      <Icon className={`h-5 w-5 shrink-0 transition-colors duration-200 ${error ? 'text-[#C89A82]' : 'text-[#9B8B7B]'}`} />
       <input
         {...inputProps}
-        className="input-field no-border"
+        className="w-full border-0 bg-transparent py-3 text-[15px] text-[#2c2c2c] placeholder:text-[#B8A899] focus:outline-none"
       />
       {trailing}
     </div>
-    {error ? <p className="mt-2 text-xs text-red-500">{error}</p> : null}
+    {error ? <p className="text-xs text-[#7C4E32]">{error}</p> : null}
   </div>
 );
 
@@ -94,9 +86,9 @@ const CustomerAuth = ({ mode = 'login' }) => {
   }, [mode]);
 
   const switchMode = (nextMode) => {
-    setActiveMode(nextMode);
     setLoginErrors({});
     setSignupErrors({});
+    setActiveMode(nextMode);
 
     if (nextMode === activeMode) {
       return;
@@ -110,6 +102,8 @@ const CustomerAuth = ({ mode = 'login' }) => {
 
     if (!loginForm.email.trim()) {
       nextErrors.email = 'Email is required';
+    } else if (!isValidEmail(loginForm.email.trim())) {
+      nextErrors.email = 'Enter a valid email address';
     }
 
     if (!loginForm.password) {
@@ -143,7 +137,7 @@ const CustomerAuth = ({ mode = 'login' }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleLoginSubmit = (event) => {
+  const handleLoginSubmit = async (event) => {
     event.preventDefault();
 
     if (!validateLogin()) {
@@ -153,13 +147,16 @@ const CustomerAuth = ({ mode = 'login' }) => {
     setLoginLoading(true);
 
     try {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
       const { dashboardPath, loginData } = saveDummyLoginSession({
         pathname: location.pathname,
-        email: loginForm.email,
+        email: loginForm.email.trim(),
         rememberMe: loginForm.rememberMe,
       });
 
-      toast.success(`Welcome, ${String(loginData.userName).split(/[ _]/)[0]}!`);
+      console.log('Login Success');
+      toast.success(`Welcome back, ${String(loginData.userName).split(/[ _]/)[0]}!`);
       navigate(dashboardPath);
     } finally {
       setLoginLoading(false);
@@ -185,7 +182,7 @@ const CustomerAuth = ({ mode = 'login' }) => {
     setSignupLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const newAccount = {
         id: `cust-${Date.now()}`,
@@ -201,241 +198,229 @@ const CustomerAuth = ({ mode = 'login' }) => {
       sessionStorage.setItem(PREFILL_EMAIL_KEY, email);
 
       toast.success('Account created. Sign in to continue.');
-      navigate('/login');
+      switchMode('login');
+      setLoginForm((current) => ({ ...current, email }));
+      setSignupForm(initialSignupForm);
     } finally {
       setSignupLoading(false);
     }
   };
 
   const passwordToggleClass =
-    'text-gray-400 transition hover:text-gray-600 focus:outline-none';
+    'text-[#9B8B7B] transition-colors duration-200 hover:text-[#5C3A21] focus:outline-none';
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gray-100 p-4 sm:p-6">
-      <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-200/50 blur-3xl" />
-      <div className="absolute bottom-10 right-0 h-48 w-48 rounded-full bg-purple-200/40 blur-3xl" />
+    <div className="customer-auth-page min-h-screen bg-[#FBF6F1] sm:bg-[#F9F3ED]">
+      <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col bg-transparent sm:min-h-0 sm:py-6">
+        <div className="customer-auth-hero relative overflow-hidden bg-gradient-to-br from-[#A67C52] via-[#8B5E3C] to-[#5C3A21] px-6 pb-16 pt-7 text-white sm:rounded-[34px] sm:pb-20 sm:pt-8">
+          <div className="absolute -left-12 top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute right-[-20px] top-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute bottom-14 left-12 h-20 w-20 rounded-full border border-white/15" />
 
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[400px] items-center justify-center">
-        <div className="w-full overflow-hidden rounded-[30px] border-2 border-black bg-white shadow-[0_24px_80px_rgba(15,23,42,0.14)] transition duration-200 hover:shadow-[0_28px_90px_rgba(15,23,42,0.18)]">
-          <div className="relative z-10 h-44 overflow-hidden rounded-b-3xl bg-gradient-to-br from-indigo-600 to-purple-600 px-6 py-4 text-white pointer-events-none">
-            <div className="absolute -right-8 top-8 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute -left-10 bottom-0 h-20 w-20 rounded-full bg-white/10 blur-2xl" />
-
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 p-2 backdrop-blur-sm">
-                  <img src={APP_LOGO} alt={`${APP_NAME} logo`} className="h-full w-full object-contain" />
-                </div>
-                <div>
-                  <p className="text-base font-semibold">{APP_NAME}</p>
-                  <p className="text-xs text-white/75">Smart appliance shopping</p>
-                </div>
-              </div>
-
-              <div className="max-w-xs space-y-2">
-                <h1 className="text-xl font-semibold leading-snug">
-                  {activeMode === 'login' ? 'Welcome back to your kitchen.' : 'Create your premium account.'}
-                </h1>
-                <p className="text-sm leading-5 text-white/75">
-                  Discover appliances, manage orders, and keep your home setup in one polished app experience.
-                </p>
-              </div>
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[20px] bg-white/18 p-3 backdrop-blur-sm">
+              <img src={APP_LOGO} alt={`${APP_NAME} logo`} className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold">{APP_NAME}</p>
+              <p className="text-sm text-white/80">Premium appliance care</p>
             </div>
           </div>
 
-          <div className="relative z-20 mt-6 bg-white px-5 pb-6 sm:px-6 pointer-events-auto">
-            <div className="flex justify-between rounded-xl bg-gray-100 p-1">
-              <div className="flex w-full gap-1">
-                {[
-                  { id: 'login', label: 'Sign In' },
-                  { id: 'signup', label: 'Sign Up' },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => switchMode(tab.id)}
-                    className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-                      activeMode === tab.id
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6 transition-all duration-300">
-              {activeMode === 'login' ? (
-                <form onSubmit={handleLoginSubmit} className="space-y-4">
-                  {loginErrors.auth ? (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                      {loginErrors.auth}
-                    </div>
-                  ) : null}
-
-                  <AuthField
-                    label="Email"
-                    icon={FiMail}
-                    type="email"
-                    placeholder="you@example.com"
-                    value={loginForm.email}
-                    onChange={(event) => {
-                      setLoginForm((current) => ({ ...current, email: event.target.value }));
-                      setLoginErrors((current) => ({ ...current, email: '', auth: '' }));
-                    }}
-                    error={loginErrors.email}
-                  />
-
-                  <AuthField
-                    label="Password"
-                    icon={FiLock}
-                    type={showLoginPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={loginForm.password}
-                    onChange={(event) => {
-                      setLoginForm((current) => ({ ...current, password: event.target.value }));
-                      setLoginErrors((current) => ({ ...current, password: '', auth: '' }));
-                    }}
-                    error={loginErrors.password}
-                    trailing={
-                      <button
-                        type="button"
-                        onClick={() => setShowLoginPassword((current) => !current)}
-                        className={passwordToggleClass}
-                      >
-                        {showLoginPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
-                      </button>
-                    }
-                  />
-
-                  <div className="flex items-center justify-between gap-4 pt-1 text-sm">
-                    <label className="flex items-center gap-2 text-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={loginForm.rememberMe}
-                        onChange={(event) =>
-                          setLoginForm((current) => ({
-                            ...current,
-                            rememberMe: event.target.checked,
-                          }))
-                        }
-                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      Remember me
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => toast('Password recovery will be available soon.')}
-                      className="font-medium text-indigo-600 transition hover:text-indigo-700"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loginLoading}
-                    className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.01] hover:from-indigo-700 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {loginLoading ? 'Signing In...' : 'Login'}
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleSignupSubmit} className="space-y-4">
-                  <AuthField
-                    label="Full Name"
-                    icon={FiUser}
-                    type="text"
-                    placeholder="Aarav Sharma"
-                    value={signupForm.name}
-                    onChange={(event) => {
-                      setSignupForm((current) => ({ ...current, name: event.target.value }));
-                      setSignupErrors((current) => ({ ...current, name: '' }));
-                    }}
-                    error={signupErrors.name}
-                  />
-
-                  <AuthField
-                    label="Email"
-                    icon={FiMail}
-                    type="email"
-                    placeholder="aarav@example.com"
-                    value={signupForm.email}
-                    onChange={(event) => {
-                      setSignupForm((current) => ({ ...current, email: event.target.value }));
-                      setSignupErrors((current) => ({ ...current, email: '' }));
-                    }}
-                    error={signupErrors.email}
-                  />
-
-                  <AuthField
-                    label="Password"
-                    icon={FiLock}
-                    type={showSignupPassword ? 'text' : 'password'}
-                    placeholder="Create a strong password"
-                    value={signupForm.password}
-                    onChange={(event) => {
-                      setSignupForm((current) => ({ ...current, password: event.target.value }));
-                      setSignupErrors((current) => ({ ...current, password: '' }));
-                    }}
-                    error={signupErrors.password}
-                    trailing={
-                      <button
-                        type="button"
-                        onClick={() => setShowSignupPassword((current) => !current)}
-                        className={passwordToggleClass}
-                      >
-                        {showSignupPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
-                      </button>
-                    }
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={signupLoading}
-                    className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:scale-[1.01] hover:from-indigo-700 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {signupLoading ? 'Creating Account...' : 'Sign Up'}
-                  </button>
-
-                  <div className="flex items-center gap-3 pt-1">
-                    <div className="h-px flex-1 bg-gray-200" />
-                    <span className="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
-                      or sign up with
-                    </span>
-                    <div className="h-px flex-1 bg-gray-200" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => toast('Google signup is coming soon.')}
-                      className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-indigo-200 hover:bg-indigo-50"
-                    >
-                      <FcGoogle className="h-5 w-5" />
-                      Google
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toast('Facebook signup is coming soon.')}
-                      className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-indigo-200 hover:bg-indigo-50"
-                    >
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1877F2] text-[10px] text-white">
-                        <FaFacebookF />
-                      </span>
-                      Facebook
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-
-            <p className="mt-6 px-4 text-center text-xs leading-5 text-gray-400">
-              By continuing, you agree to our <span className="font-medium text-gray-700">Terms &amp; Conditions</span> and Privacy Policy.
+          <div className="relative z-10 mt-7 max-w-[280px] space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/75">
+              {activeMode === 'login' ? 'Sign In' : 'Sign Up'}
             </p>
+            <h1 className="auth-title text-[28px] font-semibold leading-tight">
+              {activeMode === 'login'
+                ? 'Welcome back. Your kitchen is waiting.'
+                : 'Create your account and start shopping smarter.'}
+            </h1>
           </div>
+
+          <svg
+            viewBox="0 0 400 90"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute bottom-[-1px] left-0 h-20 w-full text-white"
+            aria-hidden="true"
+          >
+            <path
+              fill="currentColor"
+              d="M0,36 C72,88 162,4 245,34 C302,54 352,77 400,52 L400,90 L0,90 Z"
+            />
+          </svg>
+        </div>
+
+        <div className="auth-container customer-auth-sheet relative z-10 -mt-10 flex-1 rounded-t-[30px] bg-white px-6 pb-8 pt-4 shadow-[0_-14px_40px_rgba(255,77,109,0.08)] sm:mx-3 sm:-mt-16 sm:rounded-[32px] sm:px-7 sm:pt-5">
+          <div className="auth-tabs mb-5 flex items-center justify-between gap-6 border-b border-[#E8D9CC]">
+            {[
+              { id: 'login', label: 'Sign In' },
+              { id: 'signup', label: 'Sign Up' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => switchMode(tab.id)}
+                className={`tab -mb-px flex-1 px-2 pb-3 text-center text-[15px] font-medium transition-all duration-200 ${
+                  activeMode === tab.id
+                    ? 'tab-active'
+                    : 'tab-inactive hover:text-[#5C3A21]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {activeMode === 'login' ? (
+            <form onSubmit={handleLoginSubmit} className="auth-form mt-2 space-y-5">
+              <UnderlineField
+                label="Email"
+                icon={FiMail}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="Enter your email"
+                value={loginForm.email}
+                onChange={(event) => {
+                  setLoginForm((current) => ({ ...current, email: event.target.value }));
+                  setLoginErrors((current) => ({ ...current, email: '', auth: '' }));
+                }}
+                error={loginErrors.email}
+              />
+
+              <UnderlineField
+                label="Password"
+                icon={FiLock}
+                type={showLoginPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={loginForm.password}
+                onChange={(event) => {
+                  setLoginForm((current) => ({ ...current, password: event.target.value }));
+                  setLoginErrors((current) => ({ ...current, password: '', auth: '' }));
+                }}
+                error={loginErrors.password}
+                trailing={(
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((current) => !current)}
+                    className={passwordToggleClass}
+                  >
+                    {showLoginPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+                  </button>
+                )}
+              />
+
+              <div className="options flex items-center justify-end gap-3 text-[13px] text-[#8f7d82]">
+                <button
+                  type="button"
+                  onClick={() => toast('Password recovery will be available soon.')}
+                  className="font-medium text-[#5C3A21] transition-colors duration-200 hover:text-[#4A2F1E]"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="customer-auth-submit btn-login mt-2 w-full rounded-[14px] border-0 bg-gradient-to-r from-[#A67C52] to-[#5C3A21] px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loginLoading ? 'Signing In...' : 'Login'}
+              </button>
+
+              <p className="switch-text pt-1 text-center text-sm text-[#9a878d]">
+                New here?{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode('signup')}
+                  className="font-semibold text-[#5C3A21] transition-colors duration-200 hover:text-[#4A2F1E]"
+                >
+                  Create an account
+                </button>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleSignupSubmit} className="auth-form mt-2 space-y-5">
+              <UnderlineField
+                label="Full Name"
+                icon={FiUser}
+                type="text"
+                autoComplete="name"
+                placeholder="Enter your full name"
+                value={signupForm.name}
+                onChange={(event) => {
+                  setSignupForm((current) => ({ ...current, name: event.target.value }));
+                  setSignupErrors((current) => ({ ...current, name: '' }));
+                }}
+                error={signupErrors.name}
+              />
+
+              <UnderlineField
+                label="Email"
+                icon={FiMail}
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="Enter your email"
+                value={signupForm.email}
+                onChange={(event) => {
+                  setSignupForm((current) => ({ ...current, email: event.target.value }));
+                  setSignupErrors((current) => ({ ...current, email: '' }));
+                }}
+                error={signupErrors.email}
+              />
+
+              <UnderlineField
+                label="Password"
+                icon={FiLock}
+                type={showSignupPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="Create a password"
+                value={signupForm.password}
+                onChange={(event) => {
+                  setSignupForm((current) => ({ ...current, password: event.target.value }));
+                  setSignupErrors((current) => ({ ...current, password: '' }));
+                }}
+                error={signupErrors.password}
+                trailing={(
+                  <button
+                    type="button"
+                    onClick={() => setShowSignupPassword((current) => !current)}
+                    className={passwordToggleClass}
+                  >
+                    {showSignupPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
+                  </button>
+                )}
+              />
+
+              <button
+                type="submit"
+                disabled={signupLoading}
+                className="customer-auth-submit btn-login mt-2 w-full rounded-[14px] border-0 bg-gradient-to-r from-[#A67C52] to-[#5C3A21] px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {signupLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+
+              <p className="switch-text pt-1 text-center text-sm text-[#9a878d]">
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="font-semibold text-[#5C3A21] transition-colors duration-200 hover:text-[#4A2F1E]"
+                >
+                  Sign in
+                </button>
+              </p>
+            </form>
+          )}
+
+          <p className="mt-8 px-3 text-center text-xs leading-5 text-[#b09ca2]">
+            By continuing, you agree to our{' '}
+            <span className="font-medium text-[#5C3A21]">Terms &amp; Conditions</span>{' '}
+            and Privacy Policy.
+          </p>
         </div>
       </div>
     </div>

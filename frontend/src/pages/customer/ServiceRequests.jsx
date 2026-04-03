@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { formatDisplayDate, serviceIssueTypes } from '../../data/customerOwnership';
+import { useEffect, useMemo, useState } from 'react';
+import { formatDisplayDate, getProductImage, serviceIssueTypes } from '../../data/customerOwnership';
 
 const inputClass = 'input-field';
 const selectClass = 'input-field';
@@ -27,16 +27,45 @@ const getInitialForm = (products) => ({
 });
 
 export default function ServiceRequests({ products, serviceRequests, onSubmit, onNavigate }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showServiceForm, setShowServiceForm] = useState(false);
   const [form, setForm] = useState(() => getInitialForm(products));
 
-  const openModal = () => {
+  const selectedProduct = useMemo(
+    () => products.find((product) => product.id === form.productId) || products[0] || null,
+    [form.productId, products],
+  );
+
+  const selectedProductImage = selectedProduct ? getProductImage(selectedProduct.productName) : '';
+
+  useEffect(() => {
+    if (!showServiceForm) {
+      document.body.classList.remove('modal-open');
+      return undefined;
+    }
+
+    document.body.classList.add('modal-open');
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setShowServiceForm(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [showServiceForm]);
+
+  const openForm = () => {
     setForm(getInitialForm(products));
-    setIsModalOpen(true);
+    setShowServiceForm(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeForm = () => {
+    setShowServiceForm(false);
     setForm(getInitialForm(products));
   };
 
@@ -65,7 +94,7 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
       description: form.description,
       imageName: form.imageName,
     });
-    closeModal();
+    closeForm();
   };
 
   const openRequests = serviceRequests.filter((request) => request.status !== 'Completed').length;
@@ -92,7 +121,7 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
           </div>
           <button
             type="button"
-            onClick={openModal}
+            onClick={openForm}
             disabled={products.length === 0}
             className="customer-service-hero-button customer-primary-btn rounded-xl px-5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -162,93 +191,95 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
         </section>
       </div>
 
-      {isModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3E2C23]/35 p-4">
-          <div className="customer-surface customer-card-item flex h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl shadow-2xl md:max-w-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 md:p-5">
-              <div>
-                <h2 className="customer-page-title text-xl font-bold">Raise Service Request</h2>
-                <p className="customer-page-subtext mt-2 text-sm leading-relaxed">
-                  Tell us what went wrong and we will add the request to your service timeline instantly.
-                </p>
+      {showServiceForm ? (
+        <div className="customer-modal-overlay" onClick={closeForm}>
+          <div className="customer-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="customer-modal-header">
+              <div className="flex-1">
+                <h2 className="customer-section-title text-lg font-bold">Raise Service Request</h2>
               </div>
               <button
                 type="button"
-                onClick={closeModal}
-                className="customer-secondary-btn rounded-full px-3 py-1 text-sm"
+                onClick={closeForm}
+                className="customer-modal-close-btn"
+                aria-label="Close form"
               >
-                Close
+                ✕
               </button>
             </div>
 
-            <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
-              <div className="flex-1 overflow-y-auto p-4 pb-6 md:p-5">
-                <div className="customer-section-wrapper grid gap-5 md:grid-cols-2">
-                  <label className="block md:col-span-2">
-                    <span className={labelClass}>Select Product</span>
-                    <select name="productId" value={form.productId} onChange={handleChange} className={selectClass} required>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.productName} / {product.brand}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+            <div className="customer-modal-content">
+              <p className="customer-page-subtext mb-4 text-sm leading-relaxed">
+                Share the issue clearly so your appliance request can move into support tracking with the right product details attached.
+              </p>
 
-                  <label className="block md:col-span-2">
-                    <span className={labelClass}>Issue Type</span>
-                    <select name="issueType" value={form.issueType} onChange={handleChange} className={selectClass} required>
-                      {serviceIssueTypes.map((issueType) => (
-                        <option key={issueType} value={issueType}>
-                          {issueType}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              <form className="customer-section-wrapper mt-0 grid gap-4" onSubmit={handleSubmit}>
+                <label className="block">
+                  <span className={labelClass}>Select Product</span>
+                  <select name="productId" value={form.productId} onChange={handleChange} className={selectClass} required>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.productName} / {product.brand}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-                  <label className="block md:col-span-2">
-                    <span className={labelClass}>Description</span>
-                    <textarea
-                      name="description"
-                      value={form.description}
-                      onChange={handleChange}
-                      rows={5}
-                      className={`${inputClass} resize-none`}
-                      placeholder="Describe the issue clearly so the technician has enough context."
-                      required
-                    />
-                  </label>
+                <label className="block">
+                  <span className={labelClass}>Issue Type</span>
+                  <select name="issueType" value={form.issueType} onChange={handleChange} className={selectClass} required>
+                    {serviceIssueTypes.map((issueType) => (
+                      <option key={issueType} value={issueType}>
+                        {issueType}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-                  <label className="block md:col-span-2">
-                    <span className={labelClass}>Upload Image</span>
-                    <div className="customer-soft-surface customer-card-item rounded-2xl border border-dashed px-4 py-5">
-                      <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="file-input-field" />
-                      <p className="customer-subheading mt-2 text-sm">
-                        {form.imageName ? `Selected file: ${form.imageName}` : 'Optional, but helpful for faster troubleshooting.'}
-                      </p>
-                    </div>
-                  </label>
-                </div>
-              </div>
+                <label className="block">
+                  <span className={labelClass}>Description</span>
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    rows={4}
+                    className={`${inputClass} resize-none`}
+                    placeholder="Describe the issue clearly so the technician has enough context."
+                    required
+                  />
+                </label>
 
-              <div className="border-t border-slate-200 p-4 pb-6 md:p-5 md:pb-5">
-                <div className="flex gap-3">
+                <label className="block">
+                  <span className={labelClass}>Upload Image</span>
+                  <div className="customer-soft-surface customer-card-item rounded-2xl border border-dashed px-4 py-5">
+                    <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="file-input-field" />
+                    <p className="customer-subheading mt-2 text-sm">
+                      {form.imageName ? `Selected file: ${form.imageName}` : 'Optional, but helpful for faster troubleshooting.'}
+                    </p>
+                  </div>
+                </label>
+
+                <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:gap-3">
                   <button
                     type="submit"
-                    className="customer-primary-btn flex-1 rounded-lg px-5 py-2.5 text-sm"
+                    className="customer-primary-btn rounded-full px-5 py-2.5 text-sm"
                   >
                     Submit Request
                   </button>
                   <button
                     type="button"
-                    onClick={closeModal}
-                    className="customer-secondary-btn flex-1 rounded-lg px-5 py-2.5 text-sm"
+                    onClick={closeForm}
+                    className="customer-secondary-btn rounded-full px-5 py-2.5 text-sm"
                   >
                     Cancel
                   </button>
                 </div>
-              </div>
-            </form>
+
+                <p className="customer-subheading text-xs leading-relaxed">
+                  The request will appear instantly in your service timeline after saving.
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       ) : null}

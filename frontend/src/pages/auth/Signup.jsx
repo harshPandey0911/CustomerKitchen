@@ -1,6 +1,6 @@
 import React from 'react';
-import RoleAuth from '../../components/auth/RoleAuth';
+import CustomerAuth from '../../components/auth/CustomerAuth';
 
-const Signup = () => <RoleAuth initialMode="register" />;
+const Signup = () => <CustomerAuth mode="signup" />;
 
 export default Signup;
