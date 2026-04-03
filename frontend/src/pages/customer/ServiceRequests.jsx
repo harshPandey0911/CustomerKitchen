@@ -163,8 +163,8 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
 
       {isModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-2xl rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-900/10">
-            <div className="flex items-start justify-between gap-4">
+          <div className="flex h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 md:max-w-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 md:p-5">
               <div>
                 <h2 className="text-xl font-semibold text-slate-950">Raise Service Request</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -180,66 +180,72 @@ export default function ServiceRequests({ products, serviceRequests, onSubmit, o
               </button>
             </div>
 
-            <form className="mt-6 grid gap-5 md:grid-cols-2" onSubmit={handleSubmit}>
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Select Product</span>
-                <select name="productId" value={form.productId} onChange={handleChange} className={inputClass} required>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.productName} / {product.brand}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
+              <div className="flex-1 overflow-y-auto p-4 pb-6 md:p-5">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Select Product</span>
+                    <select name="productId" value={form.productId} onChange={handleChange} className={inputClass} required>
+                      {products.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.productName} / {product.brand}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Issue Type</span>
-                <select name="issueType" value={form.issueType} onChange={handleChange} className={inputClass} required>
-                  {serviceIssueTypes.map((issueType) => (
-                    <option key={issueType} value={issueType}>
-                      {issueType}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Issue Type</span>
+                    <select name="issueType" value={form.issueType} onChange={handleChange} className={inputClass} required>
+                      {serviceIssueTypes.map((issueType) => (
+                        <option key={issueType} value={issueType}>
+                          {issueType}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Description</span>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleChange}
-                  rows={5}
-                  className={`${inputClass} resize-none`}
-                  placeholder="Describe the issue clearly so the technician has enough context."
-                  required
-                />
-              </label>
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Description</span>
+                    <textarea
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      rows={5}
+                      className={`${inputClass} resize-none`}
+                      placeholder="Describe the issue clearly so the technician has enough context."
+                      required
+                    />
+                  </label>
 
-              <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium text-slate-700">Upload Image</span>
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
-                  <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="w-full text-sm text-slate-500" />
-                  <p className="mt-2 text-sm text-slate-500">
-                    {form.imageName ? `Selected file: ${form.imageName}` : 'Optional, but helpful for faster troubleshooting.'}
-                  </p>
+                  <label className="space-y-2 md:col-span-2">
+                    <span className="text-sm font-medium text-slate-700">Upload Image</span>
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5">
+                      <input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="w-full text-sm text-slate-500" />
+                      <p className="mt-2 text-sm text-slate-500">
+                        {form.imageName ? `Selected file: ${form.imageName}` : 'Optional, but helpful for faster troubleshooting.'}
+                      </p>
+                    </div>
+                  </label>
                 </div>
-              </label>
+              </div>
 
-              <div className="md:col-span-2 flex flex-wrap gap-3 pt-2">
-                <button
-                  type="submit"
-                  className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-black"
-                >
-                  Submit Request
-                </button>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
+              <div className="border-t border-slate-200 p-4 pb-6 md:p-5 md:pb-5">
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-black"
+                  >
+                    Submit Request
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 rounded-lg bg-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </form>
           </div>
