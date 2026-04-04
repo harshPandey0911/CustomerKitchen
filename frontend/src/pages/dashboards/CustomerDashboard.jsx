@@ -6,7 +6,6 @@ import Support from '../customer/Support';
 import About from '../customer/About';
 import CustomerHome from '../customer/CustomerHome';
 import MyProducts from '../customer/MyProducts';
-import RegisterProduct from '../customer/RegisterProduct';
 import ServiceRequests from '../customer/ServiceRequests';
 import Notifications from '../customer/Notifications';
 import CustomerProfile from '../customer/CustomerProfile';
@@ -20,6 +19,8 @@ import {
 import { APP_DOMAIN, APP_NAME } from '../../constants/branding';
 import Header from '../../components/customer/dashboard/Header';
 import BottomNav from '../../components/customer/dashboard/BottomNav';
+import RegisterProductModal from '../../components/customer/modals/RegisterProductModal';
+import ServiceRequestModal from '../../components/customer/modals/ServiceRequestModal';
 
 const navItems = [
   { id: 'home', label: 'Home', path: '/customer/home', icon: LuHouse },
@@ -30,6 +31,7 @@ const navItems = [
 ];
 
 const profilePaths = ['/customer/profile', '/customer/edit-profile', '/customer/profile/edit', '/customer/support', '/customer/about'];
+const registerModalPath = '/customer/register-product';
 
 const technicianDirectory = {
   Repair: 'Rohit Menon',
@@ -68,15 +70,21 @@ const CustomerDashboard = () => {
   const [readNotificationIds, setReadNotificationIds] = useState(() => readStorage('customerReadNotificationIds', []));
   const [profile, setProfile] = useState(() => readStorage('customerProfile', getDefaultCustomerProfile()));
   const [openProfile, setOpenProfile] = useState(false);
+  const [activeModal, setActiveModal] = useState(null);
+  const [lastContentPath, setLastContentPath] = useState(() =>
+    location.pathname === registerModalPath ? '/customer/products' : location.pathname,
+  );
 
   const notifications = useMemo(() => buildCustomerNotifications(products, serviceRequests), [products, serviceRequests]);
   const unreadCount = notifications.filter((notification) => !readNotificationIds.includes(notification.id)).length;
   const currentPath = location.pathname;
+  const resolvedPath = currentPath === registerModalPath ? lastContentPath : currentPath;
   const userName = profile.fullName || 'Customer';
   const avatarInitial = 'H';
-  const activeNavId = profilePaths.includes(currentPath)
+  const activeNavId = profilePaths.includes(resolvedPath)
     ? 'profile'
-    : navItems.find((item) => item.path === currentPath)?.id || null;
+    : navItems.find((item) => item.path === resolvedPath)?.id || null;
+  const isModalOpen = Boolean(activeModal);
 
   useEffect(() => {
     localStorage.setItem('customerOwnedProducts', JSON.stringify(products));
@@ -107,6 +115,18 @@ const CustomerDashboard = () => {
   }, [currentPath, notifications]);
 
   useEffect(() => {
+    if (currentPath !== registerModalPath) {
+      setLastContentPath(currentPath);
+    }
+  }, [currentPath]);
+
+  useEffect(() => {
+    if (currentPath === registerModalPath) {
+      setActiveModal('register');
+    }
+  }, [currentPath]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.profile-container')) {
         setOpenProfile(false);
@@ -127,8 +147,52 @@ const CustomerDashboard = () => {
 
   const navigateWithScroll = (path) => {
     setOpenProfile(false);
+
+    if (path === registerModalPath) {
+      setLastContentPath(resolvedPath);
+      setActiveModal('register');
+      return;
+    }
+
     window.scrollTo(0, 0);
     navigate(path);
+  };
+
+  const openServiceModal = () => {
+    setOpenProfile(false);
+
+    if (products.length === 0) {
+      toast('Register a product before raising a service request.');
+      setLastContentPath(resolvedPath);
+      setActiveModal('register');
+      return;
+    }
+
+    setActiveModal('service');
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+
+    if (currentPath === registerModalPath) {
+      window.scrollTo(0, 0);
+      navigate(lastContentPath || '/customer/products', { replace: true });
+    }
+  };
+
+  const closeModalAndNavigate = (path) => {
+    setActiveModal(null);
+    setOpenProfile(false);
+    window.scrollTo(0, 0);
+
+    if (currentPath === registerModalPath) {
+      navigate(path, { replace: true });
+      return;
+    }
+
+    if (currentPath !== path) {
+      navigate(path);
+    }
   };
 
   const handleRegisterProduct = (payload) => {
@@ -144,7 +208,7 @@ const CustomerDashboard = () => {
 
     setProducts((current) => [nextProduct, ...current]);
     toast.success('Product registered successfully.');
-    navigate('/customer/products');
+    closeModalAndNavigate('/customer/products');
   };
 
   const handleRaiseServiceRequest = (payload) => {
@@ -164,6 +228,7 @@ const CustomerDashboard = () => {
 
     setServiceRequests((current) => [nextRequest, ...current]);
     toast.success('Service request submitted.');
+    closeModalAndNavigate('/customer/service');
   };
 
   const handleProfileUpdate = (payload) => {
@@ -215,18 +280,16 @@ const CustomerDashboard = () => {
   };
 
   const renderPage = () => {
-    switch (currentPath) {
+    switch (resolvedPath) {
       case '/customer/products':
         return <MyProducts products={products} onNavigate={navigateWithScroll} />;
-      case '/customer/register-product':
-        return <RegisterProduct productOptions={ownershipProductOptions} onSubmit={handleRegisterProduct} />;
       case '/customer/service':
         return (
           <ServiceRequests
             products={products}
             serviceRequests={serviceRequests}
-            onSubmit={handleRaiseServiceRequest}
             onNavigate={navigateWithScroll}
+            onOpenServiceModal={openServiceModal}
           />
         );
       case '/customer/notifications':
@@ -259,6 +322,7 @@ const CustomerDashboard = () => {
             notifications={notifications}
             unreadCount={unreadCount}
             onNavigate={navigateWithScroll}
+            onOpenServiceModal={openServiceModal}
           />
         );
     }
@@ -300,12 +364,25 @@ const CustomerDashboard = () => {
       </div>
 
       <main className="mx-auto min-h-screen w-full max-w-[420px] px-4 pb-32 pt-[112px]">
-        <div key={currentPath} className="min-w-0 transition-all duration-300 ease-out">
+        <div key={resolvedPath} className="min-w-0 transition-all duration-300 ease-out">
           {renderPage()}
         </div>
       </main>
 
-      <BottomNav items={navItems} activeId={activeNavId} onNavigate={navigateWithScroll} />
+      {!isModalOpen ? <BottomNav items={navItems} activeId={activeNavId} onNavigate={navigateWithScroll} /> : null}
+
+      <RegisterProductModal
+        open={activeModal === 'register'}
+        onClose={closeModal}
+        productOptions={ownershipProductOptions}
+        onSubmit={handleRegisterProduct}
+      />
+      <ServiceRequestModal
+        open={activeModal === 'service'}
+        onClose={closeModal}
+        products={products}
+        onSubmit={handleRaiseServiceRequest}
+      />
     </div>
   );
 };

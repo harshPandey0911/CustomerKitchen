@@ -1,5 +1,6 @@
 import { LuBell, LuPackage, LuPlus, LuWrench } from 'react-icons/lu';
 import DashboardCards from '../../components/customer/dashboard/DashboardCards';
+import HomeHero from '../../components/customer/dashboard/HomeHero';
 import { formatDisplayDate, getProductImage, getWarrantyDetails } from '../../data/customerOwnership';
 
 const sectionShellClass = 'rounded-[24px] bg-white p-4 !shadow-[0_14px_34px_rgba(30,30,30,0.08)]';
@@ -27,7 +28,7 @@ function SectionHeading({ title, description, actionLabel, onAction }) {
   );
 }
 
-export default function CustomerHome({ userName, products, serviceRequests, notifications, unreadCount, onNavigate }) {
+export default function CustomerHome({ userName, products, serviceRequests, notifications, onNavigate, onOpenServiceModal }) {
   const firstName = userName?.trim()?.split(/\s+/)[0] || 'H';
   const productSnapshots = products.map((product) => ({
     ...product,
@@ -110,7 +111,7 @@ export default function CustomerHome({ userName, products, serviceRequests, noti
     {
       label: 'Raise Service Request',
       description: 'Log a repair or installation issue quickly.',
-      path: '/customer/service',
+      onClick: onOpenServiceModal,
       icon: LuWrench,
     },
     {
@@ -123,31 +124,7 @@ export default function CustomerHome({ userName, products, serviceRequests, noti
 
   return (
     <div className="space-y-5 pb-2">
-      <section className="overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#8B5E3C_0%,#A9745B_100%)] p-5 text-white !shadow-[0_18px_42px_rgba(139,94,60,0.22)]">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/75">Dashboard Overview</p>
-        <div className="mt-3 flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-[1.45rem] font-bold tracking-[-0.04em] text-white">Hello, {firstName}</h1>
-            <p className="mt-2 text-sm leading-6 text-white/80">
-              A richer view of your products, warranty coverage, and service activity in one place.
-            </p>
-          </div>
-
-          <div className="min-w-[88px] rounded-2xl bg-white/14 px-3 py-3 text-right backdrop-blur-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">Unread</p>
-            <p className="mt-2 text-[1.7rem] font-extrabold leading-none tracking-[-0.05em] text-white">{unreadCount}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-[22px] bg-white/12 px-4 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/75">Priority Watch</p>
-          <p className="mt-2 text-sm leading-6 text-white/90">
-            {expiringSoonProducts[0]
-              ? `${expiringSoonProducts[0].productName} warranty ends on ${formatDisplayDate(expiringSoonProducts[0].warranty.expiryDate)}.`
-              : 'All active warranties look healthy right now.'}
-          </p>
-        </div>
-      </section>
+      <HomeHero userName={firstName} />
 
       <DashboardCards cards={cards} />
 
@@ -236,7 +213,7 @@ export default function CustomerHome({ userName, products, serviceRequests, noti
               <button
                 key={action.label}
                 type="button"
-                onClick={() => onNavigate(action.path)}
+                onClick={() => (action.onClick ? action.onClick() : onNavigate(action.path))}
                 className="flex w-full items-center gap-3 rounded-[18px] bg-[#FBF8F5] p-3 text-left transition-all duration-300 ease-out active:scale-95"
               >
                 <span className={actionIconWrapClass}>
