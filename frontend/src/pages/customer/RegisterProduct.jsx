@@ -47,7 +47,7 @@ const initialFormState = (productOptions) => ({
   invoiceName: '',
 });
 
-export default function RegisterProduct({ productOptions, onSubmit }) {
+export default function RegisterProduct({ productOptions, onSubmit, onCancel }) {
   const [form, setForm] = useState(() => initialFormState(productOptions));
 
   const selectedProduct = useMemo(
@@ -91,6 +91,7 @@ export default function RegisterProduct({ productOptions, onSubmit }) {
         onChange={handleChange}
         onFileChange={handleFileChange}
         onSubmit={handleSubmit}
+        onCancel={onCancel}
       />
       <InfoSection />
     </div>

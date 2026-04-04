@@ -28,7 +28,7 @@ function SectionHeading({ title, description, actionLabel, onAction }) {
   );
 }
 
-export default function CustomerHome({ userName, products, serviceRequests, notifications, onNavigate, onOpenServiceModal }) {
+export default function CustomerHome({ userName, products, serviceRequests, notifications, onNavigate, onOpenServiceForm }) {
   const firstName = userName?.trim()?.split(/\s+/)[0] || 'H';
   const productSnapshots = products.map((product) => ({
     ...product,
@@ -111,7 +111,7 @@ export default function CustomerHome({ userName, products, serviceRequests, noti
     {
       label: 'Raise Service Request',
       description: 'Log a repair or installation issue quickly.',
-      onClick: onOpenServiceModal,
+      onClick: onOpenServiceForm,
       icon: LuWrench,
     },
     {

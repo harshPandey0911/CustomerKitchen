@@ -7,29 +7,16 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  border: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-color: transparent !important;
   outline: none !important;
   -webkit-focus-ring-color: transparent !important;
-  box-shadow: none !important;
 }
 
 *:focus, *:focus-visible, *:focus-within {
   outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 html {
   background-color: #ffffff !important;
-  border: none !important;
-  border-bottom: none !important;
-  border-top: none !important;
-  box-shadow: none !important;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -49,11 +36,7 @@ body {
   background-color: #ffffff !important;
   color: #1f2937;
   width: 100% !important;
-  border: none !important;
-  border-bottom: none !important;
-  border-top: none !important;
   outline: none !important;
-  box-shadow: none !important;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -75,11 +58,7 @@ body::-webkit-scrollbar {
   background-color: #ffffff !important;
   color: #1f2937;
   width: 100% !important;
-  border: none !important;
-  border-bottom: none !important;
-  border-top: none !important;
   outline: none !important;
-  box-shadow: none !important;
   overflow: visible;
   overflow-x: hidden;
   scrollbar-width: none;

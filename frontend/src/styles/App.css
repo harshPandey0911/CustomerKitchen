@@ -1,12 +1,4 @@
 * {
-  outline: none !important;
-  border: none !important;
-  border-color: transparent !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  box-shadow: none !important;
   -webkit-focus-ring-color: transparent !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -14,8 +6,6 @@
 
 *:focus, *:focus-visible, *:focus-within {
   outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 *::-webkit-scrollbar {
@@ -507,15 +497,15 @@ body, html {
 .input-field {
   width: 100%;
   min-height: 52px;
-  padding: 14px 16px;
-  border: 1.5px solid #e5e7eb !important;
-  border-radius: 12px !important;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e5e5 !important;
+  border-radius: 10px !important;
   background-color: #ffffff !important;
-  color: #111827 !important;
-  font-size: 15px;
+  color: #333333 !important;
+  font-size: 14px;
   line-height: 1.5;
   outline: none !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  box-shadow: none !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
 }
 
@@ -525,31 +515,31 @@ body, html {
 }
 
 .input-field:hover {
-  border-color: #d1d5db !important;
+  border-color: #c8b6a6 !important;
 }
 
 .input-field:focus,
 .input-field:focus-visible {
-  border-color: #111827 !important;
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08) !important;
+  border-color: #8b5e3c !important;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.15) !important;
 }
 
 select.input-field {
   appearance: none;
-  padding-right: 44px;
+  padding-right: 42px;
   background-image:
     linear-gradient(45deg, transparent 50%, #6b7280 50%),
     linear-gradient(135deg, #6b7280 50%, transparent 50%);
   background-position:
-    calc(100% - 18px) calc(50% - 3px),
-    calc(100% - 12px) calc(50% - 3px);
+    calc(100% - 19px) calc(50% - 3px),
+    calc(100% - 13px) calc(50% - 3px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
 }
 
 textarea.input-field {
-  min-height: 140px;
-  resize: vertical;
+  min-height: 100px;
+  resize: none;
 }
 
 .input-shell {
@@ -625,34 +615,150 @@ textarea.input-field {
 
 .file-input-field {
   width: 100%;
-  padding: 12px 14px;
-  border: 1.5px dashed #e5e7eb !important;
-  border-radius: 12px !important;
-  background-color: #ffffff !important;
-  color: #374151 !important;
-  font-size: 15px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  padding: 10px;
+  border: 1.5px dashed #e5e5e5 !important;
+  border-radius: 10px !important;
+  background-color: #fafafa !important;
+  color: #333333 !important;
+  font-size: 14px;
+  box-shadow: none !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .file-input-field:hover {
-  border-color: #d1d5db !important;
+  border-color: #c8b6a6 !important;
 }
 
 .file-input-field:focus,
 .file-input-field:focus-visible {
-  border-color: #111827 !important;
-  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08) !important;
+  border-color: #8b5e3c !important;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.15) !important;
 }
 
 .file-input-field::file-selector-button {
   margin-right: 12px;
   border: none !important;
-  border-radius: 10px;
-  background: #111827;
+  border-radius: 8px;
+  background: #8b5e3c;
   color: #ffffff;
-  padding: 10px 14px;
+  padding: 8px 12px;
   font-size: 13px;
+  font-weight: 600;
+}
+
+.customer-panel .form-input,
+.customer-panel .form-select,
+.customer-panel .form-textarea {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  border: 1.5px solid #d8c1ad !important;
+  border-radius: 999px !important;
+  padding: 14px 18px !important;
+  background: #ffffff !important;
+  color: #333333 !important;
+  font-size: 14px !important;
+  line-height: 1.5;
+  outline: none !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 8px 18px rgba(110, 75, 42, 0.05) !important;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s ease !important;
+}
+
+.customer-panel .form-input:hover,
+.customer-panel .form-select:hover,
+.customer-panel .form-textarea:hover {
+  border-color: #bf9e84 !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 22px rgba(110, 75, 42, 0.08) !important;
+}
+
+.customer-panel .form-input:focus,
+.customer-panel .form-input:focus-visible,
+.customer-panel .form-select:focus,
+.customer-panel .form-select:focus-visible,
+.customer-panel .form-textarea:focus,
+.customer-panel .form-textarea:focus-visible {
+  border-color: #8b5e3c !important;
+  box-shadow:
+    0 0 0 3px rgba(139, 94, 60, 0.14),
+    0 10px 24px rgba(110, 75, 42, 0.12) !important;
+  outline: none !important;
+  transform: translateY(-1px);
+}
+
+.customer-panel .form-select {
+  appearance: none;
+  padding-right: 52px !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #8b5e3c 50%),
+    linear-gradient(135deg, #8b5e3c 50%, transparent 50%);
+  background-position:
+    calc(100% - 24px) calc(50% - 3px),
+    calc(100% - 18px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.customer-panel .form-textarea {
+  border-radius: 24px !important;
+  min-height: 112px;
+  resize: none;
+}
+
+.customer-panel .form-file-input {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  border: 1.5px dashed #d8c1ad !important;
+  border-radius: 22px !important;
+  padding: 12px !important;
+  background: linear-gradient(180deg, #ffffff 0%, #faf7f4 100%) !important;
+  color: #333333 !important;
+  font-size: 14px !important;
+  outline: none !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 16px rgba(110, 75, 42, 0.06) !important;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s ease !important;
+}
+
+.customer-panel .form-file-input:hover {
+  border-color: #bf9e84 !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 22px rgba(110, 75, 42, 0.09) !important;
+}
+
+.customer-panel .form-file-input:focus,
+.customer-panel .form-file-input:focus-visible {
+  border-color: #8b5e3c !important;
+  box-shadow:
+    0 0 0 3px rgba(139, 94, 60, 0.14),
+    0 10px 24px rgba(110, 75, 42, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.customer-panel .form-file-input::file-selector-button {
+  margin-right: 12px;
+  border: none !important;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a9745b, #6e4b2a);
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(139, 94, 60, 0.16) !important;
 }
 
 /* Auth-specific colors - brown theme for login/signup */
@@ -1070,16 +1176,15 @@ body.modal-open .customer-panel .customer-floating-nav {
 .customer-panel .input-shell,
 .customer-panel .input-group,
 .customer-panel .file-input-field {
-  border-color: var(--customer-border) !important;
-  box-shadow: 0 2px 6px rgba(62, 44, 35, 0.04) !important;
+  border-color: #e5e5e5 !important;
+  box-shadow: none !important;
 }
 
 .customer-panel .input-field,
 .customer-panel .input-group,
 .customer-panel .file-input-field,
 .customer-panel .input-shell {
-  background-color: #ffffff !important;
-  color: var(--customer-text) !important;
+  color: #333333 !important;
 }
 
 .customer-panel .input-field::placeholder {
@@ -1090,7 +1195,7 @@ body.modal-open .customer-panel .customer-floating-nav {
 .customer-panel .input-group:hover,
 .customer-panel .file-input-field:hover,
 .customer-panel .input-shell:hover {
-  border-color: #d8cec6 !important;
+  border-color: #c8b6a6 !important;
 }
 
 .customer-panel .input-field:focus,
@@ -1100,7 +1205,7 @@ body.modal-open .customer-panel .customer-floating-nav {
 .customer-panel .file-input-field:focus-visible,
 .customer-panel .input-shell:focus-within {
   border-color: var(--customer-primary) !important;
-  box-shadow: 0 0 0 3px rgba(107, 79, 59, 0.1) !important;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.15) !important;
 }
 
 .customer-panel .input-group span {

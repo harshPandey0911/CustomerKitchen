@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import ServiceHeader from '../../components/customer/service/ServiceHeader';
 import StatsCards from '../../components/customer/service/StatsCards';
 import RequestList from '../../components/customer/service/RequestList';
-export default function ServiceRequests({ products, serviceRequests, onNavigate, onOpenServiceModal }) {
+
+export default function ServiceRequests({ products, serviceRequests, onNavigate, onOpenServiceForm }) {
   const sortedRequests = useMemo(
     () =>
       [...serviceRequests].sort(
@@ -20,7 +21,7 @@ export default function ServiceRequests({ products, serviceRequests, onNavigate,
 
   return (
     <div className="space-y-4">
-      <ServiceHeader disabled={products.length === 0} onRaiseRequest={onOpenServiceModal} />
+      <ServiceHeader disabled={products.length === 0} onRaiseRequest={onOpenServiceForm} />
 
       {products.length === 0 ? (
         <div className="rounded-[24px] bg-white p-5 text-center !shadow-[0_14px_34px_rgba(30,30,30,0.08)]">

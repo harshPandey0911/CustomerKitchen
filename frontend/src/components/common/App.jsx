@@ -1,6 +1,7 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from '../../routes/AppRoutes';
+import '../../styles/App.css';
 
 function App() {
   return (

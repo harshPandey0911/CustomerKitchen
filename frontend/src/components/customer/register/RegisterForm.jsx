@@ -1,6 +1,7 @@
-const labelClass = 'mb-2 block text-sm font-semibold text-[#1E1E1E]';
-const fieldClass = 'input-field !min-h-[54px] !rounded-[16px] !border-[#E7DDD5] !bg-white !text-[#1E1E1E] placeholder:!text-[#9CA3AF]';
-const fileFieldClass = 'file-input-field !rounded-[16px] !border-[#E7DDD5] !bg-white';
+const labelClass = 'mb-[6px] block text-sm font-medium text-[#6B4F3A]';
+const inputClass = 'form-input !min-h-[52px] placeholder:!text-[#9CA3AF]';
+const selectClass = 'form-select !min-h-[52px]';
+const fileFieldClass = 'form-file-input';
 
 export default function RegisterForm({
   form,
@@ -10,6 +11,7 @@ export default function RegisterForm({
   onChange,
   onFileChange,
   onSubmit,
+  onCancel,
 }) {
   return (
     <section className="rounded-[24px] bg-white p-4 !shadow-[0_14px_34px_rgba(30,30,30,0.08)]">
@@ -20,10 +22,10 @@ export default function RegisterForm({
         </p>
       </div>
 
-      <form className="mt-5 space-y-4" onSubmit={onSubmit}>
+      <form className="mt-5 space-y-[18px]" onSubmit={onSubmit}>
         <label className="block">
           <span className={labelClass}>Product Name</span>
-          <select name="productName" value={form.productName} onChange={onChange} className={fieldClass} required>
+          <select name="productName" value={form.productName} onChange={onChange} className={selectClass} required>
             {productOptions.map((option) => (
               <option key={option.name} value={option.name}>
                 {option.name}
@@ -39,7 +41,7 @@ export default function RegisterForm({
             name="brand"
             value={form.brand}
             onChange={onChange}
-            className={fieldClass}
+            className={inputClass}
             placeholder={brandPlaceholder}
             required
           />
@@ -52,14 +54,14 @@ export default function RegisterForm({
             name="purchaseDate"
             value={form.purchaseDate}
             onChange={onChange}
-            className={fieldClass}
+            className={inputClass}
             required
           />
         </label>
 
         <label className="block">
           <span className={labelClass}>Warranty Period</span>
-          <select name="warrantyMonths" value={form.warrantyMonths} onChange={onChange} className={fieldClass} required>
+          <select name="warrantyMonths" value={form.warrantyMonths} onChange={onChange} className={selectClass} required>
             {warrantyOptions.map((period) => (
               <option key={period} value={period}>
                 {period} months
@@ -76,13 +78,25 @@ export default function RegisterForm({
           </p>
         </label>
 
-        <button
-          type="submit"
-          className="w-full rounded-[18px] px-4 py-4 text-sm font-semibold text-white !shadow-[0_16px_30px_rgba(110,75,42,0.28)] transition-all duration-300 ease-out active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #A9745B, #6E4B2A)' }}
-        >
-          Register Product
-        </button>
+        <div className="flex gap-3 pt-1">
+          <button
+            type="submit"
+            className="flex-1 rounded-[18px] px-4 py-4 text-sm font-semibold text-white !shadow-[0_16px_30px_rgba(110,75,42,0.28)] transition-all duration-300 ease-out active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #A9745B, #6E4B2A)' }}
+          >
+            Register Product
+          </button>
+
+          {onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-[18px] bg-[#F4ECE7] px-4 py-4 text-sm font-semibold text-[#8B5E3C] transition-all duration-300 ease-out active:scale-95"
+            >
+              Cancel
+            </button>
+          ) : null}
+        </div>
       </form>
     </section>
   );
