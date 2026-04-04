@@ -78,7 +78,7 @@ const renderMenuBlock = ({
                 } ${
                   isActive
                     ? 'bg-black text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'panel-hover-nav text-gray-700'
                 }`}
               >
                 <span className="flex h-5 w-5 items-center justify-center text-base">
@@ -190,7 +190,7 @@ const PanelLayout = ({
           <button
             type="button"
             onClick={() => setMobileSidebarOpen(false)}
-            className="ml-auto rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 md:hidden"
+            className="panel-hover-icon ml-auto rounded-lg p-2 text-gray-500 transition md:hidden"
           >
             <FiX className="h-4 w-4" />
           </button>
@@ -229,7 +229,7 @@ const PanelLayout = ({
             <button
               type="button"
               onClick={handleMobileToggle}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-100 md:hidden"
+              className="panel-hover-icon flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition md:hidden"
             >
               <FiMenu className="h-4 w-4" />
             </button>
@@ -237,7 +237,7 @@ const PanelLayout = ({
             <button
               type="button"
               onClick={handleDesktopToggle}
-              className="hidden h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition hover:bg-gray-100 md:flex"
+              className="panel-hover-icon hidden h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition md:flex"
             >
               <FiMenu className="h-4 w-4" />
             </button>
@@ -250,7 +250,7 @@ const PanelLayout = ({
 
           <div className="flex items-center gap-3">
             {onSearchChange ? (
-              <div className="hidden w-64 items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 md:flex lg:w-72">
+              <div className="panel-hover-surface hidden w-64 items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 md:flex lg:w-72">
                 <FiSearch className="h-4 w-4 text-gray-400" />
                 <input
                   type="text"
@@ -268,7 +268,7 @@ const PanelLayout = ({
               <button
                 type="button"
                 onClick={() => setProfileOpen((current) => !current)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-sm font-semibold text-white transition hover:opacity-95"
+                className="panel-hover-button-dark flex h-10 w-10 items-center justify-center rounded-full bg-black text-sm font-semibold text-white transition"
               >
                 {resolvedInitial}
               </button>
@@ -290,7 +290,7 @@ const PanelLayout = ({
                             setProfileOpen(false);
                             action.onClick();
                           }}
-                          className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+                          className="panel-hover-menu-item w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition"
                         >
                           {action.label}
                         </button>
@@ -302,7 +302,7 @@ const PanelLayout = ({
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                      className="panel-hover-menu-item w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition"
                     >
                       Logout
                     </button>

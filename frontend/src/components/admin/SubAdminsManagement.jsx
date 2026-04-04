@@ -1,45 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { adminUi, statusBadge } from './adminStyles';
+import { subAdminsApi } from '../../services/subAdminsApi';
 
 const SubAdminsManagement = () => {
-  const initialSubAdmins = [
-    {
-      id: 1,
-      name: 'Rajesh Kumar',
-      email: 'rajesh.kumar@kitchenappliance.com',
-      role: 'Manager',
-      permissions: ['Inventory', 'Orders', 'Reports'],
-    },
-    {
-      id: 2,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@kitchenappliance.com',
-      role: 'Support',
-      permissions: ['Orders', 'Services'],
-    },
-    {
-      id: 3,
-      name: 'Amit Patel',
-      email: 'amit.patel@kitchenappliance.com',
-      role: 'Finance',
-      permissions: ['Reports', 'Inventory'],
-    },
-    {
-      id: 4,
-      name: 'Neha Singh',
-      email: 'neha.singh@kitchenappliance.com',
-      role: 'Manager',
-      permissions: ['Inventory', 'Orders', 'Reports', 'Services'],
-    },
-  ];
-
-  const [subAdmins, setSubAdmins] = useState(initialSubAdmins);
+  const [subAdmins, setSubAdmins] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'Manager',
     permissions: [],
   });
@@ -47,11 +23,40 @@ const SubAdminsManagement = () => {
   const roles = ['Manager', 'Support', 'Finance'];
   const allPermissions = ['Inventory', 'Orders', 'Reports', 'Services'];
 
-  const filteredSubAdmins = subAdmins.filter((admin) => {
-    const matchesSearch = admin.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'All' || admin.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const resetForm = () => {
+    setFormData({ name: '', email: '', password: '', role: 'Manager', permissions: [] });
+  };
+
+  const loadSubAdmins = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await subAdminsApi.list();
+      setSubAdmins(response.subAdmins || []);
+    } catch (nextError) {
+      setError(nextError.message || 'Unable to load sub admins.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSubAdmins();
+  }, []);
+
+  const filteredSubAdmins = useMemo(
+    () =>
+      subAdmins.filter((admin) => {
+        const normalizedSearch = searchTerm.toLowerCase();
+        const matchesSearch =
+          admin.name.toLowerCase().includes(normalizedSearch) ||
+          admin.email.toLowerCase().includes(normalizedSearch);
+        const matchesRole = roleFilter === 'All' || admin.role === roleFilter;
+        return matchesSearch && matchesRole;
+      }),
+    [roleFilter, searchTerm, subAdmins]
+  );
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,19 +72,57 @@ const SubAdminsManagement = () => {
     });
   };
 
-  const handleAddSubAdmin = () => {
-    if (formData.name.trim() && formData.email.trim() && formData.permissions.length > 0) {
-      setSubAdmins([...subAdmins, { id: Date.now(), ...formData }]);
-      setFormData({ name: '', email: '', role: 'Manager', permissions: [] });
+  const handleAddSubAdmin = async () => {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
+      toast.error('Please fill name, email, and password.');
+      return;
+    }
+
+    if (formData.password.trim().length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (formData.permissions.length === 0) {
+      toast.error('Please select at least one permission.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const response = await subAdminsApi.create({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        role: formData.role,
+        permissions: formData.permissions,
+      });
+
+      setSubAdmins((current) => [response.subAdmin, ...current]);
+      resetForm();
       setShowModal(false);
-    } else {
-      alert('Please fill all fields and select at least one permission');
+      toast.success('Sub admin added successfully.');
+    } catch (nextError) {
+      toast.error(nextError.message || 'Unable to add sub admin.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDeleteSubAdmin = (id) => {
+  const handleDeleteSubAdmin = async (id) => {
     if (window.confirm('Are you sure you want to delete this sub admin?')) {
-      setSubAdmins(subAdmins.filter((admin) => admin.id !== id));
+      setDeletingId(id);
+
+      try {
+        await subAdminsApi.remove(id);
+        setSubAdmins((current) => current.filter((admin) => admin.id !== id));
+        toast.success('Sub admin deleted successfully.');
+      } catch (nextError) {
+        toast.error(nextError.message || 'Unable to delete sub admin.');
+      } finally {
+        setDeletingId('');
+      }
     }
   };
 
@@ -114,6 +157,12 @@ const SubAdminsManagement = () => {
           </div>
         ))}
       </div>
+
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <input
@@ -155,7 +204,7 @@ const SubAdminsManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredSubAdmins.length > 0 ? (
+              {!loading && filteredSubAdmins.length > 0 ? (
                 filteredSubAdmins.map((admin) => (
                   <tr key={admin.id} className={adminUi.tableRow}>
                     <td className={`${adminUi.td} font-medium text-gray-900`}>{admin.name}</td>
@@ -177,8 +226,12 @@ const SubAdminsManagement = () => {
                         <button onClick={() => handleEditSubAdmin(admin.id)} className={adminUi.textButton}>
                           Edit
                         </button>
-                        <button onClick={() => handleDeleteSubAdmin(admin.id)} className="text-sm text-red-600 transition hover:underline">
-                          Delete
+                        <button
+                          onClick={() => handleDeleteSubAdmin(admin.id)}
+                          className="text-sm text-red-600 transition hover:underline"
+                          disabled={deletingId === admin.id}
+                        >
+                          {deletingId === admin.id ? 'Deleting...' : 'Delete'}
                         </button>
                       </div>
                     </td>
@@ -187,7 +240,7 @@ const SubAdminsManagement = () => {
               ) : (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center text-sm text-gray-400">
-                    No sub admins found matching your criteria
+                    {loading ? 'Loading sub admins...' : 'No sub admins found matching your criteria'}
                   </td>
                 </tr>
               )}
@@ -204,7 +257,7 @@ const SubAdminsManagement = () => {
               <button
                 onClick={() => {
                   setShowModal(false);
-                  setFormData({ name: '', email: '', role: 'Manager', permissions: [] });
+                  resetForm();
                 }}
                 className="text-xl text-gray-500 transition hover:text-gray-700"
               >
@@ -233,6 +286,18 @@ const SubAdminsManagement = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter email address"
+                  className={adminUi.input}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Create login password"
                   className={adminUi.input}
                 />
               </div>
@@ -275,14 +340,18 @@ const SubAdminsManagement = () => {
               <button
                 onClick={() => {
                   setShowModal(false);
-                  setFormData({ name: '', email: '', role: 'Manager', permissions: [] });
+                  resetForm();
                 }}
                 className={`flex-1 ${adminUi.secondaryButton} py-2`}
               >
                 Cancel
               </button>
-              <button onClick={handleAddSubAdmin} className={`flex-1 ${adminUi.primaryButton}`}>
-                Add Sub Admin
+              <button
+                onClick={handleAddSubAdmin}
+                className={`flex-1 ${adminUi.primaryButton}`}
+                disabled={saving}
+              >
+                {saving ? 'Adding...' : 'Add Sub Admin'}
               </button>
             </div>
           </div>

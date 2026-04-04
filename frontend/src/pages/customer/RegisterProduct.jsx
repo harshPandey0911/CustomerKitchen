@@ -70,14 +70,17 @@ export default function RegisterProduct({ productOptions, onSubmit, onCancel }) 
     setForm((current) => ({ ...current, invoiceName }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onSubmit({
+    const didSubmit = await onSubmit({
       ...form,
       modelNumber: form.modelNumber || selectedMeta.modelNumber,
       warrantyMonths: Number(form.warrantyMonths),
     });
-    setForm(initialFormState(productOptions));
+
+    if (didSubmit !== false) {
+      setForm(initialFormState(productOptions));
+    }
   };
 
   return (

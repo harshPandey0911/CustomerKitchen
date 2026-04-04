@@ -13,6 +13,10 @@ import {
 import Retailers from '../distributor/Retailers';
 import PanelLayout from '../../components/layouts/PanelLayout';
 import { APP_DOMAIN, APP_NAME } from '../../constants/branding';
+import { customerProductsApi } from '../../services/customerProductsApi';
+import { distributorsApi } from '../../services/distributorsApi';
+import { inventoryProductsApi } from '../../services/inventoryProductsApi';
+import { serviceRequestsApi } from '../../services/serviceRequestsApi';
 
 const sections = [
   { heading: 'Overview', items: [{ id: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/distributor/dashboard' }] },
@@ -28,21 +32,6 @@ const sections = [
   { heading: 'Insights', items: [{ id: 'performance', label: 'Performance', icon: 'chart', path: '/distributor/dashboard' }] },
   { heading: 'Support', items: [{ id: 'settings', label: 'Settings', icon: 'gear', path: '/distributor/dashboard' }] },
   { heading: 'System', items: [{ id: 'logout', label: 'Logout', icon: 'logout', action: 'logout' }] },
-];
-
-const initialDistributors = [
-  { id: 1, name: 'Rajesh Kumar', email: `rajesh@${APP_DOMAIN}`, phone: '+91 98765 43210', location: 'Mumbai', status: 'Active', totalOrders: 42 },
-  { id: 2, name: 'Priya Singh', email: `priya@${APP_DOMAIN}`, phone: '+91 98765 43211', location: 'Delhi', status: 'Active', totalOrders: 37 },
-  { id: 3, name: 'Amit Patel', email: `amit@${APP_DOMAIN}`, phone: '+91 98765 43212', location: 'Ahmedabad', status: 'Inactive', totalOrders: 24 },
-  { id: 4, name: 'Anjali Desai', email: `anjali@${APP_DOMAIN}`, phone: '+91 98765 43213', location: 'Pune', status: 'Active', totalOrders: 29 },
-];
-
-const initialInventory = [
-  { id: 1, product: 'Mixer Grinder', sku: 'DST-MG-210', availableQty: 180, status: 'In Stock' },
-  { id: 2, product: 'Electric Kettle', sku: 'DST-EK-118', availableQty: 58, status: 'In Stock' },
-  { id: 3, product: 'Microwave Oven', sku: 'DST-MW-402', availableQty: 24, status: 'Low Stock' },
-  { id: 4, product: 'Air Fryer', sku: 'DST-AF-501', availableQty: 92, status: 'In Stock' },
-  { id: 5, product: 'Induction Cooktop', sku: 'DST-IC-712', availableQty: 19, status: 'Low Stock' },
 ];
 
 const initialOrders = [
@@ -68,21 +57,21 @@ const performanceData = [
   { name: 'Apr', handled: 124 },
 ];
 
-const initialDistributorForm = { name: '', email: '', phone: '', location: '', status: 'Active' };
+const initialDistributorForm = { name: '', email: '', password: '', phone: '', location: '', status: 'Active' };
 const initialStockForm = { availableQty: '', status: 'In Stock' };
 
-const cardClass = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
-const panelClass = 'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
+const cardClass = 'panel-hover-card rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
+const panelClass = 'panel-hover-surface overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
 const inputClass = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200';
 const selectClass = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200';
 const tableHeadClass = 'px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500';
 const tableCellClass = 'px-5 py-4 text-sm text-gray-600';
-const primaryButtonClass = 'rounded-lg bg-black px-4 py-2 text-sm text-white transition hover:bg-gray-900';
-const secondaryButtonClass = 'rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100';
+const primaryButtonClass = 'panel-hover-button-dark rounded-lg bg-black px-4 py-2 text-sm text-white transition';
+const secondaryButtonClass = 'panel-hover-button-light rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition';
 const axisStyle = { fill: '#6b7280', fontSize: 12 };
 const tooltipStyle = { backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', fontSize: '12px' };
 
-const getStockStatus = (availableQty) => (availableQty <= 25 ? 'Low Stock' : 'In Stock');
+const getStockStatus = (availableQty) => (availableQty < 10 ? 'Low Stock' : 'In Stock');
 
 const getBadgeClass = (status) => {
   if (['Active', 'Accepted', 'Approved', 'In Stock', 'Dispatched', 'Delivered'].includes(status)) {
@@ -114,13 +103,26 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
   const routeSection = location.state?.section || initialSection;
   const [activeSection, setActiveSection] = useState(routeSection);
   const [searchQuery, setSearchQuery] = useState('');
-  const [distributors, setDistributors] = useState(initialDistributors);
-  const [inventory, setInventory] = useState(initialInventory);
+  const [distributors, setDistributors] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [registeredProducts, setRegisteredProducts] = useState([]);
+  const [customerServiceRequests, setCustomerServiceRequests] = useState([]);
   const [orders, setOrders] = useState(initialOrders);
   const [restockRequests, setRestockRequests] = useState(initialRestockRequests);
   const [showDistributorModal, setShowDistributorModal] = useState(false);
   const [editingDistributorId, setEditingDistributorId] = useState(null);
   const [distributorForm, setDistributorForm] = useState(initialDistributorForm);
+  const [distributorLoading, setDistributorLoading] = useState(true);
+  const [distributorSaving, setDistributorSaving] = useState(false);
+  const [distributorDeletingId, setDistributorDeletingId] = useState('');
+  const [distributorError, setDistributorError] = useState('');
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [inventorySaving, setInventorySaving] = useState(false);
+  const [inventoryError, setInventoryError] = useState('');
+  const [registeredProductsLoading, setRegisteredProductsLoading] = useState(false);
+  const [registeredProductsError, setRegisteredProductsError] = useState('');
+  const [customerServiceRequestsLoading, setCustomerServiceRequestsLoading] = useState(false);
+  const [customerServiceRequestsError, setCustomerServiceRequestsError] = useState('');
   const [showStockModal, setShowStockModal] = useState(false);
   const [editingInventoryItem, setEditingInventoryItem] = useState(null);
   const [stockForm, setStockForm] = useState(initialStockForm);
@@ -129,12 +131,197 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
     setActiveSection(routeSection);
   }, [routeSection]);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadDistributors = async () => {
+      setDistributorLoading(true);
+      setDistributorError('');
+
+      try {
+        const response = await distributorsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setDistributors(response.distributors || []);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setDistributors([]);
+        setDistributorError(error.message || 'Unable to load distributors.');
+      } finally {
+        if (!isCancelled) {
+          setDistributorLoading(false);
+        }
+      }
+    };
+
+    loadDistributors();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadInventory = async () => {
+      setInventoryLoading(true);
+      setInventoryError('');
+
+      try {
+        const response = await inventoryProductsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setInventory(response.inventoryProducts || []);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setInventory([]);
+        setInventoryError(error.message || 'Unable to load inventory products.');
+      } finally {
+        if (!isCancelled) {
+          setInventoryLoading(false);
+        }
+      }
+    };
+
+    loadInventory();
+    const refreshTimer = window.setInterval(loadInventory, 10000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(refreshTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeSection !== 'inventory') {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    const loadRegisteredProducts = async () => {
+      setRegisteredProductsLoading(true);
+      setRegisteredProductsError('');
+
+      try {
+        const response = await customerProductsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setRegisteredProducts(response.registeredProducts || []);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setRegisteredProducts([]);
+        setRegisteredProductsError(error.message || 'Unable to load registered products.');
+      } finally {
+        if (!isCancelled) {
+          setRegisteredProductsLoading(false);
+        }
+      }
+    };
+
+    loadRegisteredProducts();
+    const refreshTimer = window.setInterval(loadRegisteredProducts, 10000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(refreshTimer);
+    };
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== 'restock') {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    const loadCustomerServiceRequests = async () => {
+      setCustomerServiceRequestsLoading(true);
+      setCustomerServiceRequestsError('');
+
+      try {
+        const response = await serviceRequestsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setCustomerServiceRequests(response.serviceRequests || []);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setCustomerServiceRequests([]);
+        setCustomerServiceRequestsError(error.message || 'Unable to load customer service requests.');
+      } finally {
+        if (!isCancelled) {
+          setCustomerServiceRequestsLoading(false);
+        }
+      }
+    };
+
+    loadCustomerServiceRequests();
+    const refreshTimer = window.setInterval(loadCustomerServiceRequests, 10000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(refreshTimer);
+    };
+  }, [activeSection]);
+
   const userName = JSON.parse(localStorage.getItem('loginData') || '{}')?.userName || 'Distributor User';
   const query = searchQuery.trim().toLowerCase();
   const matchesSearch = (values) => !query || values.some((value) => String(value).toLowerCase().includes(query));
 
   const filteredDistributors = useMemo(() => distributors.filter((item) => matchesSearch([item.name, item.email, item.phone, item.location, item.status, item.totalOrders])), [distributors, query]);
   const filteredInventory = useMemo(() => inventory.filter((item) => matchesSearch([item.product, item.sku, item.availableQty, item.status])), [inventory, query]);
+  const filteredRegisteredProducts = useMemo(
+    () =>
+      registeredProducts.filter((item) =>
+        matchesSearch([
+          item.productName,
+          item.modelNumber,
+          item.customerName,
+          item.customerEmail,
+          item.purchaseDate,
+          item.status,
+        ])),
+    [registeredProducts, query]
+  );
+  const filteredCustomerServiceRequests = useMemo(
+    () =>
+      customerServiceRequests.filter((item) =>
+        matchesSearch([
+          item.customerName,
+          item.customerEmail,
+          item.customerPhone,
+          item.productName,
+          item.issueType,
+          item.status,
+          item.createdAt,
+        ])),
+    [customerServiceRequests, query]
+  );
   const filteredOrders = useMemo(() => orders.filter((item) => matchesSearch([item.orderNo, item.retailer, item.product, item.quantity, item.destination, item.status])), [orders, query]);
   const filteredRequests = useMemo(() => restockRequests.filter((item) => matchesSearch([item.retailer, item.product, item.quantity, item.location, item.requestedOn, item.status])), [restockRequests, query]);
 
@@ -156,7 +343,7 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
     { title: 'Products Tracked', value: String(inventory.length), meta: 'Across distributor inventory' },
     { title: 'Available Units', value: String(availableUnits), meta: 'Ready for fulfillment' },
     { title: 'Low Stock Items', value: String(lowStockItems), meta: 'Need replenishment planning' },
-    { title: 'Stock Coverage', value: String(Math.max(1, Math.round(availableUnits / Math.max(inventory.length, 1)))), meta: 'Average units per SKU' },
+    { title: 'Registered Products', value: String(registeredProducts.length), meta: 'Saved by customers in database' },
   ];
   const orderStats = [
     { title: 'Incoming Orders', value: String(orders.filter((item) => item.status === 'Pending Dispatch').length), meta: 'Awaiting dispatch' },
@@ -168,7 +355,7 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
     { title: 'Pending Requests', value: String(pendingRequests), meta: 'Waiting for review' },
     { title: 'Accepted', value: String(restockRequests.filter((item) => item.status === 'Accepted').length), meta: 'Approved for dispatch' },
     { title: 'Rejected', value: String(restockRequests.filter((item) => item.status === 'Rejected').length), meta: 'Closed requests' },
-    { title: 'Requested Units', value: String(restockRequests.reduce((sum, item) => sum + item.quantity, 0)), meta: 'Combined request volume' },
+    { title: 'Service Requests', value: String(customerServiceRequests.length), meta: 'Raised by customers' },
   ];
   const performanceStats = [
     { title: 'Orders Handled', value: String(totalOrders), meta: 'Current distributor workload' },
@@ -192,7 +379,7 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
 
   const openDistributorModal = (distributor = null) => {
     if (distributor) {
-      setDistributorForm({ name: distributor.name, email: distributor.email, phone: distributor.phone, location: distributor.location, status: distributor.status });
+      setDistributorForm({ name: distributor.name, email: distributor.email, password: '', phone: distributor.phone, location: distributor.location, status: distributor.status });
       setEditingDistributorId(distributor.id);
     } else {
       setDistributorForm(initialDistributorForm);
@@ -207,27 +394,71 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
     setShowDistributorModal(false);
   };
 
-  const handleDistributorSubmit = (event) => {
+  const handleDistributorSubmit = async (event) => {
     event.preventDefault();
+
     if (!distributorForm.name.trim() || !distributorForm.email.trim() || !distributorForm.phone.trim() || !distributorForm.location.trim()) {
       toast.error('Please complete all distributor details.');
       return;
     }
 
-    if (editingDistributorId) {
-      setDistributors((current) => current.map((item) => (item.id === editingDistributorId ? { ...item, ...distributorForm } : item)));
-      toast.success('Distributor updated successfully.');
-    } else {
-      setDistributors((current) => [{ id: Math.max(...current.map((item) => item.id), 0) + 1, ...distributorForm, name: distributorForm.name.trim(), email: distributorForm.email.trim(), phone: distributorForm.phone.trim(), location: distributorForm.location.trim(), totalOrders: 0 }, ...current]);
-      toast.success('Distributor added successfully.');
+    if (!editingDistributorId && distributorForm.password.trim().length < 6) {
+      toast.error('Distributor password must be at least 6 characters.');
+      return;
     }
-    closeDistributorModal();
+
+    setDistributorSaving(true);
+
+    try {
+      if (editingDistributorId) {
+        const response = await distributorsApi.update(editingDistributorId, {
+          name: distributorForm.name.trim(),
+          email: distributorForm.email.trim(),
+          phone: distributorForm.phone.trim(),
+          location: distributorForm.location.trim(),
+          status: distributorForm.status,
+        });
+
+        setDistributors((current) =>
+          current.map((item) => (item.id === editingDistributorId ? response.distributor : item))
+        );
+        toast.success('Distributor updated successfully.');
+      } else {
+        const response = await distributorsApi.create({
+          name: distributorForm.name.trim(),
+          email: distributorForm.email.trim(),
+          password: distributorForm.password,
+          phone: distributorForm.phone.trim(),
+          location: distributorForm.location.trim(),
+          status: distributorForm.status,
+        });
+
+        setDistributors((current) => [response.distributor, ...current]);
+        toast.success('Distributor added successfully.');
+      }
+
+      closeDistributorModal();
+    } catch (error) {
+      toast.error(error.message || 'Unable to save distributor.');
+    } finally {
+      setDistributorSaving(false);
+    }
   };
 
-  const handleDeleteDistributor = (id) => {
+  const handleDeleteDistributor = async (id) => {
     const distributor = distributors.find((item) => item.id === id);
-    setDistributors((current) => current.filter((item) => item.id !== id));
-    toast.success(`${distributor?.name || 'Distributor'} removed.`);
+
+    setDistributorDeletingId(id);
+
+    try {
+      await distributorsApi.remove(id);
+      setDistributors((current) => current.filter((item) => item.id !== id));
+      toast.success(`${distributor?.name || 'Distributor'} removed.`);
+    } catch (error) {
+      toast.error(error.message || 'Unable to delete distributor.');
+    } finally {
+      setDistributorDeletingId('');
+    }
   };
 
   const handleViewDistributor = (distributor) => {
@@ -246,7 +477,7 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
     setShowStockModal(false);
   };
 
-  const handleStockSubmit = (event) => {
+  const handleStockSubmit = async (event) => {
     event.preventDefault();
     const nextQuantity = Number.parseInt(stockForm.availableQty, 10);
     if (Number.isNaN(nextQuantity) || nextQuantity < 0 || !editingInventoryItem) {
@@ -254,12 +485,29 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
       return;
     }
 
-    setInventory((current) => current.map((item) => (item.id === editingInventoryItem.id ? { ...item, availableQty: nextQuantity, status: stockForm.status || getStockStatus(nextQuantity) } : item)));
-    toast.success('Inventory updated successfully.');
-    closeStockModal();
+    setInventorySaving(true);
+
+    try {
+      const response = await inventoryProductsApi.update(editingInventoryItem.id, {
+        quantity: nextQuantity,
+        status: stockForm.status || getStockStatus(nextQuantity),
+      });
+
+      setInventory((current) =>
+        current.map((item) =>
+          item.id === editingInventoryItem.id ? response.inventoryProduct : item,
+        ),
+      );
+      toast.success('Inventory updated successfully.');
+      closeStockModal();
+    } catch (error) {
+      toast.error(error.message || 'Unable to update inventory.');
+    } finally {
+      setInventorySaving(false);
+    }
   };
 
-  const handleRestockDecision = (requestId, decision) => {
+  const handleRestockDecision = async (requestId, decision) => {
     const request = restockRequests.find((item) => item.id === requestId);
     if (!request || request.status !== 'Pending') {
       return;
@@ -273,7 +521,23 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
       }
 
       const nextQuantity = inventoryItem.availableQty - request.quantity;
-      setInventory((current) => current.map((item) => (item.id === inventoryItem.id ? { ...item, availableQty: nextQuantity, status: getStockStatus(nextQuantity) } : item)));
+
+      try {
+        const response = await inventoryProductsApi.update(inventoryItem.id, {
+          quantity: nextQuantity,
+          status: getStockStatus(nextQuantity),
+        });
+
+        setInventory((current) =>
+          current.map((item) =>
+            item.id === inventoryItem.id ? response.inventoryProduct : item,
+          ),
+        );
+      } catch (error) {
+        toast.error(error.message || 'Unable to update inventory for this request.');
+        return;
+      }
+
       setOrders((current) => [{ id: Math.max(...current.map((item) => item.id), 0) + 1, orderNo: `ORD-${4100 + current.length + 1}`, retailer: request.retailer, product: request.product, quantity: request.quantity, destination: request.location, status: 'Pending Dispatch' }, ...current]);
     }
 
@@ -328,7 +592,7 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
           <tbody>
             {rows.length > 0 ? (
               rows.map((row) => (
-                <tr key={row[keyField]} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
+                <tr key={row[keyField]} className="panel-hover-row border-b border-gray-200 last:border-b-0">
                   {columns.map((column) => (
                     <td key={column.key} className={`${tableCellClass} ${column.bold ? 'font-medium text-gray-900' : ''}`}>
                       {column.render ? column.render(row) : column.badge ? <span className={getBadgeClass(row[column.key])}>{row[column.key]}</span> : row[column.key]}
@@ -371,13 +635,30 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
   const dashboardView = (
     <div className="space-y-6">
       <div>
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Distributor Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage distributor operations, stock allocation, and retailer fulfillment from one place.</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Distributor Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500">Manage distributor operations, stock allocation, and retailer fulfillment from one place.</p>
+          </div>
+          {embedded ? (
+            <button
+              type="button"
+              onClick={() => openDistributorModal()}
+              className={primaryButtonClass}
+            >
+              Add Distributor
+            </button>
+          ) : null}
         </div>
       </div>
 
       {renderCards(dashboardStats)}
+
+      {distributorError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {distributorError}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         {renderChart('Orders Handled', 'Monthly order movement across the distributor network')}
@@ -414,24 +695,48 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
           { key: 'location', label: 'Location' },
           { key: 'status', label: 'Status', badge: true },
           { key: 'totalOrders', label: 'Orders Count' },
-          { key: 'actions', label: 'Actions', render: (row) => <div className="flex items-center gap-3"><button type="button" onClick={() => handleViewDistributor(row)} className="text-sm text-gray-700 transition hover:underline">View</button><button type="button" onClick={() => openDistributorModal(row)} className="text-sm text-gray-700 transition hover:underline">Edit</button><button type="button" onClick={() => handleDeleteDistributor(row.id)} className="text-sm text-gray-700 transition hover:underline">Delete</button></div> },
+          { key: 'actions', label: 'Actions', render: (row) => <div className="flex items-center gap-3"><button type="button" onClick={() => handleViewDistributor(row)} className="text-sm text-gray-700 transition hover:underline">View</button><button type="button" onClick={() => openDistributorModal(row)} className="text-sm text-gray-700 transition hover:underline">Edit</button><button type="button" onClick={() => handleDeleteDistributor(row.id)} disabled={distributorDeletingId === row.id} className="text-sm text-gray-700 transition hover:underline disabled:cursor-not-allowed disabled:opacity-50">{distributorDeletingId === row.id ? 'Deleting...' : 'Delete'}</button></div> },
         ],
-        filteredDistributors,
+        distributorLoading ? [] : filteredDistributors,
         'id'
       )}
     </div>
   );
 
+  const formatDisplayDate = (value) => {
+    const parsed = new Date(String(value).includes('T') ? value : `${value}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return value || 'Not available';
+    }
+
+    return parsed.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   const inventoryView = (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Inventory</h1>
-        <p className="mt-1 text-sm text-gray-500">Track available quantity, spot low-stock items, and adjust stock levels as needed.</p>
+        <p className="mt-1 text-sm text-gray-500">Track stock operations and review products registered by customers.</p>
       </div>
       {renderCards(inventoryStats)}
+      {inventoryError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {inventoryError}
+        </div>
+      ) : null}
+      {inventoryLoading ? (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 shadow-sm">
+          Loading shared inventory from the admin catalog...
+        </div>
+      ) : null}
       {renderTable(
         'Stock Overview',
-        'Keep inventory aligned with retailer demand and distribution commitments.',
+        'Products added by admin automatically appear here for distributor stock handling.',
         [
           { key: 'product', label: 'Product', bold: true },
           { key: 'sku', label: 'SKU' },
@@ -439,7 +744,25 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
           { key: 'status', label: 'Status', badge: true },
           { key: 'actions', label: 'Actions', render: (row) => <button type="button" onClick={() => openStockModal(row)} className={secondaryButtonClass}>Update Stock</button> },
         ],
-        filteredInventory,
+        inventoryLoading ? [] : filteredInventory,
+        'id'
+      )}
+      {registeredProductsError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {registeredProductsError}
+        </div>
+      ) : null}
+      {renderTable(
+        'Customer Registered Products',
+        'These products are synced from customer registrations and mirrored into the database products collection.',
+        [
+          { key: 'productName', label: 'Product', bold: true },
+          { key: 'modelNumber', label: 'Model Number' },
+          { key: 'customerName', label: 'Customer' },
+          { key: 'purchaseDate', label: 'Purchase Date', render: (row) => formatDisplayDate(row.purchaseDate) },
+          { key: 'status', label: 'Warranty Status', badge: true },
+        ],
+        registeredProductsLoading ? [] : filteredRegisteredProducts,
         'id'
       )}
     </div>
@@ -490,6 +813,25 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
           { key: 'actions', label: 'Actions', render: (row) => row.status === 'Pending' ? <div className="flex items-center gap-2"><button type="button" onClick={() => handleRestockDecision(row.id, 'Accepted')} className={secondaryButtonClass}>Accept</button><button type="button" onClick={() => handleRestockDecision(row.id, 'Rejected')} className={secondaryButtonClass}>Reject</button></div> : <span className="text-sm text-gray-500">Processed</span> },
         ],
         filteredRequests,
+        'id'
+      )}
+      {customerServiceRequestsError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {customerServiceRequestsError}
+        </div>
+      ) : null}
+      {renderTable(
+        'Customer Service Requests',
+        'Whenever a customer raises a service request, it appears here for distributor visibility.',
+        [
+          { key: 'customerName', label: 'Customer', bold: true },
+          { key: 'productName', label: 'Product' },
+          { key: 'issueType', label: 'Issue Type' },
+          { key: 'customerPhone', label: 'Contact', render: (row) => row.customerPhone || row.customerEmail },
+          { key: 'createdAt', label: 'Requested On', render: (row) => formatDisplayDate(row.createdAt) },
+          { key: 'status', label: 'Status', badge: true },
+        ],
+        customerServiceRequestsLoading ? [] : filteredCustomerServiceRequests,
         'id'
       )}
     </div>
@@ -604,6 +946,9 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
         <form onSubmit={handleDistributorSubmit} className="space-y-4 p-6">
           <input type="text" placeholder="Name" value={distributorForm.name} onChange={(event) => setDistributorForm((current) => ({ ...current, name: event.target.value }))} className={inputClass} required />
           <input type="email" placeholder="Email" value={distributorForm.email} onChange={(event) => setDistributorForm((current) => ({ ...current, email: event.target.value }))} className={inputClass} required />
+          {!editingDistributorId ? (
+            <input type="password" placeholder="Password" value={distributorForm.password} onChange={(event) => setDistributorForm((current) => ({ ...current, password: event.target.value }))} className={inputClass} required />
+          ) : null}
           <input type="text" placeholder="Phone" value={distributorForm.phone} onChange={(event) => setDistributorForm((current) => ({ ...current, phone: event.target.value }))} className={inputClass} required />
           <input type="text" placeholder="Location" value={distributorForm.location} onChange={(event) => setDistributorForm((current) => ({ ...current, location: event.target.value }))} className={inputClass} required />
           <select value={distributorForm.status} onChange={(event) => setDistributorForm((current) => ({ ...current, status: event.target.value }))} className={selectClass}>
@@ -615,8 +960,8 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
             <button type="button" onClick={closeDistributorModal} className={secondaryButtonClass}>
               Cancel
             </button>
-            <button type="submit" className={primaryButtonClass}>
-              {editingDistributorId ? 'Save' : 'Add Distributor'}
+            <button type="submit" className={primaryButtonClass} disabled={distributorSaving}>
+              {distributorSaving ? 'Saving...' : editingDistributorId ? 'Save' : 'Add Distributor'}
             </button>
           </div>
         </form>
@@ -643,8 +988,12 @@ const Distributor = ({ embedded = false, initialSection = 'dashboard' }) => {
             <button type="button" onClick={closeStockModal} className={secondaryButtonClass}>
               Cancel
             </button>
-            <button type="submit" className={primaryButtonClass}>
-              Update
+            <button
+              type="submit"
+              disabled={inventorySaving}
+              className={`${primaryButtonClass} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {inventorySaving ? 'Updating...' : 'Update'}
             </button>
           </div>
         </form>

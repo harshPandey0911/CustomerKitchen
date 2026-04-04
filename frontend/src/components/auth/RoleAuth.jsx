@@ -2,6 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getLoginRouteConfig, saveDummyLoginSession } from '../../services/authSession';
+import { adminAuthApi } from '../../services/adminAuthApi';
+import { distributorAuthApi } from '../../services/distributorAuthApi';
+import { retailerAuthApi } from '../../services/retailerAuthApi';
+import { subAdminAuthApi } from '../../services/subAdminAuthApi';
 import { APP_DOMAIN, APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
 
 const ACCOUNT_STORAGE_KEY = `${APP_STORAGE_PREFIX}UnifiedRoleAccounts`;
@@ -52,6 +56,10 @@ export default function RoleAuth({ initialMode = 'login' }) {
   const [loading, setLoading] = useState(false);
   const canRegister = config.role === 'customer';
   const currentMode = canRegister ? activeMode : 'login';
+  const isAdminLogin = config.role === 'admin';
+  const isDistributorLogin = config.role === 'distributor';
+  const isRetailerLogin = config.role === 'retailer';
+  const isSubAdminLogin = config.role === 'subadmin';
 
   useEffect(() => {
     setActiveMode(canRegister ? initialMode : 'login');
@@ -116,12 +124,43 @@ export default function RoleAuth({ initialMode = 'login' }) {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 350));
+      let matchingAccount;
 
-      const matchingAccount = readAccounts().find(
-        (account) =>
-          account.role === config.role &&
-          account.email.toLowerCase() === loginForm.email.trim().toLowerCase(),
-      );
+      if (isAdminLogin) {
+        const response = await adminAuthApi.login({
+          email: loginForm.email.trim(),
+          password: loginForm.password,
+        });
+
+        matchingAccount = response.admin;
+      } else if (isDistributorLogin) {
+        const response = await distributorAuthApi.login({
+          email: loginForm.email.trim(),
+          password: loginForm.password,
+        });
+
+        matchingAccount = response.distributor;
+      } else if (isRetailerLogin) {
+        const response = await retailerAuthApi.login({
+          email: loginForm.email.trim(),
+          password: loginForm.password,
+        });
+
+        matchingAccount = response.retailer;
+      } else if (isSubAdminLogin) {
+        const response = await subAdminAuthApi.login({
+          email: loginForm.email.trim(),
+          password: loginForm.password,
+        });
+
+        matchingAccount = response.subAdmin;
+      } else {
+        matchingAccount = readAccounts().find(
+          (account) =>
+            account.role === config.role &&
+            account.email.toLowerCase() === loginForm.email.trim().toLowerCase(),
+        );
+      }
 
       const { dashboardPath } = saveDummyLoginSession({
         pathname: location.pathname,
@@ -131,6 +170,12 @@ export default function RoleAuth({ initialMode = 'login' }) {
 
       toast.success(`${config.label} login successful`);
       navigate(dashboardPath);
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        password: error.message || 'Login failed.',
+      }));
+      toast.error(error.message || 'Login failed.');
     } finally {
       setLoading(false);
     }

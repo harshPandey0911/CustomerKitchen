@@ -1,46 +1,94 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-
-const initialRetailers = [
-  { id: 1, name: 'Rajesh Kumar', email: 'rajesh@shop.com', phone: '9876543210', location: 'Mumbai', status: 'Active' },
-  { id: 2, name: 'Priya Sharma', email: 'priya@shop.com', phone: '9876543211', location: 'Delhi', status: 'Active' },
-  { id: 3, name: 'Aman Verma', email: 'aman@shop.com', phone: '9876543212', location: 'Pune', status: 'Inactive' },
-];
+import { retailersApi } from '../../services/retailersApi';
 
 const initialRetailerForm = {
   name: '',
   email: '',
+  password: '',
   phone: '',
   location: '',
   status: 'Active',
 };
 
-const cardClass = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
-const panelClass = 'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
+const cardClass = 'panel-hover-card rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
+const panelClass = 'panel-hover-surface overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
 const inputClass = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200';
 const selectClass = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-200';
 const tableHeadClass = 'px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500';
 const tableCellClass = 'px-5 py-4 text-sm text-gray-600';
-const primaryButtonClass = 'rounded-lg bg-black px-4 py-2 text-sm text-white transition hover:bg-gray-900';
-const secondaryButtonClass = 'rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100';
+const primaryButtonClass = 'panel-hover-button-dark rounded-lg bg-black px-4 py-2 text-sm text-white transition disabled:cursor-not-allowed disabled:opacity-50';
+const secondaryButtonClass = 'panel-hover-button-light rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition';
 
-const getStatusClass = (status) => (status === 'Active'
-  ? 'inline-flex rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white'
-  : 'inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600');
+const getStatusClass = (status) =>
+  status === 'Active'
+    ? 'inline-flex rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white'
+    : 'inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600';
+
+const getDistributorEmail = () => {
+  try {
+    return JSON.parse(localStorage.getItem('loginData') || '{}')?.email?.trim().toLowerCase() || '';
+  } catch {
+    return '';
+  }
+};
 
 export default function Retailers({ searchQuery = '' }) {
-  const [retailers, setRetailers] = useState(initialRetailers);
+  const [retailers, setRetailers] = useState([]);
   const [showRetailerModal, setShowRetailerModal] = useState(false);
   const [editingRetailerId, setEditingRetailerId] = useState(null);
   const [retailerForm, setRetailerForm] = useState(initialRetailerForm);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
+  const [error, setError] = useState('');
 
+  const distributorEmail = getDistributorEmail();
   const query = searchQuery.trim().toLowerCase();
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadRetailers = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await retailersApi.list(distributorEmail);
+
+        if (isCancelled) {
+          return;
+        }
+
+        setRetailers(response.retailers || []);
+      } catch (nextError) {
+        if (isCancelled) {
+          return;
+        }
+
+        setRetailers([]);
+        setError(nextError.message || 'Unable to load retailers.');
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadRetailers();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [distributorEmail]);
+
   const filteredRetailers = useMemo(
-    () => retailers.filter((retailer) => (
-      !query || [retailer.name, retailer.email, retailer.phone, retailer.location, retailer.status]
-        .some((value) => String(value).toLowerCase().includes(query))
-    )),
-    [retailers, query]
+    () =>
+      retailers.filter((retailer) =>
+        !query ||
+        [retailer.name, retailer.email, retailer.phone, retailer.location, retailer.status, retailer.orderCount]
+          .some((value) => String(value).toLowerCase().includes(query))),
+    [query, retailers]
   );
 
   const activeRetailers = retailers.filter((retailer) => retailer.status === 'Active').length;
@@ -59,6 +107,7 @@ export default function Retailers({ searchQuery = '' }) {
       setRetailerForm({
         name: retailer.name,
         email: retailer.email,
+        password: '',
         phone: retailer.phone,
         location: retailer.location,
         status: retailer.status,
@@ -68,6 +117,7 @@ export default function Retailers({ searchQuery = '' }) {
       setRetailerForm(initialRetailerForm);
       setEditingRetailerId(null);
     }
+
     setShowRetailerModal(true);
   };
 
@@ -77,7 +127,7 @@ export default function Retailers({ searchQuery = '' }) {
     setShowRetailerModal(false);
   };
 
-  const handleRetailerSubmit = (event) => {
+  const handleRetailerSubmit = async (event) => {
     event.preventDefault();
 
     const nextRetailer = {
@@ -86,6 +136,7 @@ export default function Retailers({ searchQuery = '' }) {
       phone: retailerForm.phone.trim(),
       location: retailerForm.location.trim(),
       status: retailerForm.status,
+      createdBy: distributorEmail,
     };
 
     if (!nextRetailer.name || !nextRetailer.email || !nextRetailer.phone || !nextRetailer.location) {
@@ -93,26 +144,50 @@ export default function Retailers({ searchQuery = '' }) {
       return;
     }
 
-    if (editingRetailerId) {
-      setRetailers((current) => current.map((retailer) => (
-        retailer.id === editingRetailerId ? { ...retailer, ...nextRetailer } : retailer
-      )));
-      toast.success('Retailer updated successfully.');
-    } else {
-      setRetailers((current) => [
-        { id: Math.max(...current.map((retailer) => retailer.id), 0) + 1, ...nextRetailer },
-        ...current,
-      ]);
-      toast.success('Retailer added successfully.');
+    if (!editingRetailerId && retailerForm.password.trim().length < 6) {
+      toast.error('Retailer password must be at least 6 characters.');
+      return;
     }
 
-    closeRetailerModal();
+    setSaving(true);
+
+    try {
+      if (editingRetailerId) {
+        const response = await retailersApi.update(editingRetailerId, nextRetailer);
+        setRetailers((current) =>
+          current.map((retailer) => (retailer.id === editingRetailerId ? response.retailer : retailer))
+        );
+        toast.success('Retailer updated successfully.');
+      } else {
+        const response = await retailersApi.create({
+          ...nextRetailer,
+          password: retailerForm.password,
+        });
+        setRetailers((current) => [response.retailer, ...current]);
+        toast.success('Retailer added successfully.');
+      }
+
+      closeRetailerModal();
+    } catch (nextError) {
+      toast.error(nextError.message || 'Unable to save retailer.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteRetailer = (id) => {
+  const handleDeleteRetailer = async (id) => {
     const retailer = retailers.find((item) => item.id === id);
-    setRetailers((current) => current.filter((item) => item.id !== id));
-    toast.success(`${retailer?.name || 'Retailer'} deleted.`);
+    setDeletingId(id);
+
+    try {
+      await retailersApi.remove(id, distributorEmail);
+      setRetailers((current) => current.filter((item) => item.id !== id));
+      toast.success(`${retailer?.name || 'Retailer'} deleted.`);
+    } catch (nextError) {
+      toast.error(nextError.message || 'Unable to delete retailer.');
+    } finally {
+      setDeletingId('');
+    }
   };
 
   const retailerModal = showRetailerModal ? (
@@ -122,7 +197,7 @@ export default function Retailers({ searchQuery = '' }) {
           <h2 className="text-lg font-semibold text-gray-900">
             {editingRetailerId ? 'Edit Retailer' : 'Add Retailer'}
           </h2>
-          <p className="mt-1 text-sm text-gray-500">Manage retailer contact information and account status.</p>
+          <p className="mt-1 text-sm text-gray-500">Manage retailer contact information and login access.</p>
         </div>
 
         <form onSubmit={handleRetailerSubmit} className="space-y-4 p-6">
@@ -142,6 +217,16 @@ export default function Retailers({ searchQuery = '' }) {
             className={inputClass}
             required
           />
+          {!editingRetailerId ? (
+            <input
+              type="password"
+              placeholder="Password"
+              value={retailerForm.password}
+              onChange={(event) => setRetailerForm((current) => ({ ...current, password: event.target.value }))}
+              className={inputClass}
+              required
+            />
+          ) : null}
           <input
             type="text"
             placeholder="Phone"
@@ -171,8 +256,8 @@ export default function Retailers({ searchQuery = '' }) {
             <button type="button" onClick={closeRetailerModal} className={secondaryButtonClass}>
               Cancel
             </button>
-            <button type="submit" className={primaryButtonClass}>
-              {editingRetailerId ? 'Save Changes' : 'Add Retailer'}
+            <button type="submit" className={primaryButtonClass} disabled={saving}>
+              {saving ? 'Saving...' : editingRetailerId ? 'Save Changes' : 'Add Retailer'}
             </button>
           </div>
         </form>
@@ -204,6 +289,12 @@ export default function Retailers({ searchQuery = '' }) {
           ))}
         </div>
 
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
+
         <div className={panelClass}>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -219,9 +310,9 @@ export default function Retailers({ searchQuery = '' }) {
               </thead>
 
               <tbody>
-                {filteredRetailers.length > 0 ? (
+                {!loading && filteredRetailers.length > 0 ? (
                   filteredRetailers.map((retailer) => (
-                    <tr key={retailer.id} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
+                    <tr key={retailer.id} className="panel-hover-row border-b border-gray-200 last:border-b-0">
                       <td className={`${tableCellClass} font-medium text-gray-900`}>{retailer.name}</td>
                       <td className={tableCellClass}>{retailer.email}</td>
                       <td className={tableCellClass}>{retailer.phone}</td>
@@ -241,9 +332,10 @@ export default function Retailers({ searchQuery = '' }) {
                           <button
                             type="button"
                             onClick={() => handleDeleteRetailer(retailer.id)}
-                            className="text-sm text-red-500 transition hover:underline"
+                            className="text-sm text-red-500 transition hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={deletingId === retailer.id}
                           >
-                            Delete
+                            {deletingId === retailer.id ? 'Deleting...' : 'Delete'}
                           </button>
                         </div>
                       </td>
@@ -252,7 +344,7 @@ export default function Retailers({ searchQuery = '' }) {
                 ) : (
                   <tr>
                     <td colSpan="6" className="px-5 py-12 text-center text-sm text-gray-400">
-                      No matching retailers found.
+                      {loading ? 'Loading retailers...' : 'No matching retailers found.'}
                     </td>
                   </tr>
                 )}

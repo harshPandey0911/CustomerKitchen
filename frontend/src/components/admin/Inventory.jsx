@@ -1,83 +1,209 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { adminUi, statusBadge } from './adminStyles';
+import { inventoryProductsApi } from '../../services/inventoryProductsApi';
+
+const baseCategories = ['All', 'Cooking', 'Laundry', 'Cooling', 'Kitchen', 'Water'];
+const initialFormData = {
+  name: '',
+  category: 'Cooking',
+  price: '',
+  quantity: '',
+};
+
+const formatCurrency = (value) => `Rs ${Number(value || 0).toLocaleString('en-IN')}`;
 
 const Inventory = () => {
-  const initialData = [
-    { id: 1, name: 'Induction Cooktop', category: 'Cooking', price: 'Rs 12,499', quantity: 45 },
-    { id: 2, name: 'Washing Machine', category: 'Laundry', price: 'Rs 34,999', quantity: 8 },
-    { id: 3, name: 'Refrigerator', category: 'Cooling', price: 'Rs 48,500', quantity: 22 },
-    { id: 4, name: 'Mixer Grinder', category: 'Kitchen', price: 'Rs 3,199', quantity: 65 },
-    { id: 5, name: 'Water Purifier', category: 'Water', price: 'Rs 15,800', quantity: 5 },
-    { id: 6, name: 'Microwave Oven', category: 'Cooking', price: 'Rs 8,999', quantity: 3 },
-  ];
-
-  const categories = ['All', 'Cooking', 'Laundry', 'Cooling', 'Kitchen', 'Water'];
-  const [products, setProducts] = useState(initialData);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    category: 'Cooking',
-    price: '',
-    quantity: '',
-  });
+  const [formData, setFormData] = useState(initialFormData);
+  const [editingProductId, setEditingProductId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
+  const [error, setError] = useState('');
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  useEffect(() => {
+    let isCancelled = false;
 
-  const getStockStatus = (quantity) => {
-    if (quantity < 10) {
-      return 'Low Stock';
-    }
-    return 'In Stock';
+    const loadProducts = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await inventoryProductsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setProducts(response.inventoryProducts || []);
+      } catch (loadError) {
+        if (isCancelled) {
+          return;
+        }
+
+        setProducts([]);
+        setError(loadError.message || 'Unable to load inventory products.');
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const categories = useMemo(
+    () => [
+      ...new Set([
+        ...baseCategories,
+        ...products.map((product) => product.category).filter(Boolean),
+      ]),
+    ],
+    [products],
+  );
+
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const matchesSearch = product.name
+          .toLowerCase()
+          .includes(searchTerm.trim().toLowerCase());
+        const matchesCategory =
+          selectedCategory === 'All' || product.category === selectedCategory;
+
+        return matchesSearch && matchesCategory;
+      }),
+    [products, searchTerm, selectedCategory],
+  );
+
+  const stats = useMemo(() => {
+    const totalValue = products.reduce(
+      (sum, product) => sum + Number(product.price || 0) * Number(product.quantity || 0),
+      0,
+    );
+
+    return [
+      { title: 'Total Products', value: products.length },
+      {
+        title: 'In Stock',
+        value: products.filter((product) => product.status === 'In Stock').length,
+      },
+      {
+        title: 'Low Stock',
+        value: products.filter((product) => product.status === 'Low Stock').length,
+      },
+      { title: 'Total Value', value: formatCurrency(totalValue) },
+    ];
+  }, [products]);
+
+  const resetModalState = () => {
+    setEditingProductId('');
+    setFormData(initialFormData);
+    setShowModal(false);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.price || !formData.quantity) {
-      alert('Please fill all fields');
+  const openCreateModal = () => {
+    setEditingProductId('');
+    setFormData(initialFormData);
+    setShowModal(true);
+  };
+
+  const openEditModal = (product) => {
+    setEditingProductId(product.id);
+    setFormData({
+      name: product.name,
+      category: product.category,
+      price: String(product.price),
+      quantity: String(product.quantity),
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!formData.name.trim() || !formData.price || !formData.quantity) {
+      toast.error('Please fill all fields.');
       return;
     }
 
-    const newProduct = {
-      id: products.length + 1,
-      name: formData.name,
+    const payload = {
+      name: formData.name.trim(),
       category: formData.category,
-      price: `Rs ${parseInt(formData.price, 10).toLocaleString()}`,
-      quantity: parseInt(formData.quantity, 10),
+      price: Number(formData.price),
+      quantity: Number.parseInt(formData.quantity, 10),
     };
 
-    setProducts([...products, newProduct]);
-    setFormData({ name: '', category: 'Cooking', price: '', quantity: '' });
-    setShowModal(false);
-    alert('Product added successfully!');
-  };
+    if (!Number.isFinite(payload.price) || payload.price < 0) {
+      toast.error('Enter a valid price.');
+      return;
+    }
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter((product) => product.id !== id));
+    if (!Number.isInteger(payload.quantity) || payload.quantity < 0) {
+      toast.error('Enter a valid stock quantity.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      if (editingProductId) {
+        const response = await inventoryProductsApi.update(editingProductId, payload);
+
+        setProducts((current) =>
+          current.map((product) =>
+            product.id === editingProductId ? response.inventoryProduct : product,
+          ),
+        );
+        toast.success('Product updated successfully.');
+      } else {
+        const response = await inventoryProductsApi.create(payload);
+
+        setProducts((current) => [response.inventoryProduct, ...current]);
+        toast.success('Product added successfully.');
+      }
+
+      resetModalState();
+    } catch (saveError) {
+      toast.error(saveError.message || 'Unable to save product.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleEdit = (id) => {
-    alert(`Edit product ${id} - Feature coming soon!`);
-  };
+  const handleDelete = async (id) => {
+    const product = products.find((item) => item.id === id);
 
-  const stats = [
-    { title: 'Total Products', value: products.length },
-    { title: 'In Stock', value: products.filter((product) => product.quantity >= 10).length },
-    { title: 'Low Stock', value: products.filter((product) => product.quantity < 10).length },
-    { title: 'Total Value', value: 'Rs 1.27Cr' },
-  ];
+    if (!window.confirm(`Delete ${product?.name || 'this product'}?`)) {
+      return;
+    }
+
+    setDeletingId(id);
+
+    try {
+      await inventoryProductsApi.remove(id);
+      setProducts((current) => current.filter((product) => product.id !== id));
+      toast.success('Product deleted successfully.');
+    } catch (deleteError) {
+      toast.error(deleteError.message || 'Unable to delete product.');
+    } finally {
+      setDeletingId('');
+    }
+  };
 
   return (
     <div className={adminUi.page}>
@@ -86,27 +212,32 @@ const Inventory = () => {
           <h1 className={adminUi.pageTitle}>Inventory</h1>
           <p className={adminUi.pageDescription}>Manage your kitchen appliance stock.</p>
         </div>
-        <button onClick={() => setShowModal(true)} className={adminUi.primaryButton}>
+        <button type="button" onClick={openCreateModal} className={adminUi.primaryButton}>
           Add Product
         </button>
       </div>
 
-      {showModal && (
+      {showModal ? (
         <div className={adminUi.modalOverlay}>
           <div className={adminUi.modal}>
             <div className="flex items-center justify-between border-b border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900">Add Product</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingProductId ? 'Edit Product' : 'Add Product'}
+              </h2>
               <button
-                onClick={() => setShowModal(false)}
+                type="button"
+                onClick={resetModalState}
                 className="text-xl text-gray-500 transition hover:text-gray-700"
               >
                 x
               </button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-4 p-6">
+            <form onSubmit={handleSubmit} className="space-y-4 p-6">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Product Name</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Product Name
+                </label>
                 <input
                   type="text"
                   name="name"
@@ -125,11 +256,13 @@ const Inventory = () => {
                   onChange={handleInputChange}
                   className={adminUi.select}
                 >
-                  {categories.filter((category) => category !== 'All').map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                  {categories
+                    .filter((category) => category !== 'All')
+                    .map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -137,6 +270,7 @@ const Inventory = () => {
                 <label className="mb-1 block text-sm font-medium text-gray-700">Price</label>
                 <input
                   type="number"
+                  min="0"
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
@@ -146,9 +280,12 @@ const Inventory = () => {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Stock Quantity</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  Stock Quantity
+                </label>
                 <input
                   type="number"
+                  min="0"
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleInputChange}
@@ -158,30 +295,42 @@ const Inventory = () => {
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className={`flex-1 ${adminUi.secondaryButton} py-2`}>
+                <button
+                  type="button"
+                  onClick={resetModalState}
+                  className={`flex-1 ${adminUi.secondaryButton} py-2`}
+                >
                   Cancel
                 </button>
-                <button type="submit" className={`flex-1 ${adminUi.primaryButton}`}>
-                  Add Product
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className={`flex-1 ${adminUi.primaryButton} disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {saving
+                    ? 'Saving...'
+                    : editingProductId
+                      ? 'Save Product'
+                      : 'Add Product'}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <input
           type="text"
           placeholder="Search products"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(event) => setSearchTerm(event.target.value)}
           className={adminUi.input}
         />
 
         <select
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={(event) => setSelectedCategory(event.target.value)}
           className={adminUi.select}
         >
           {categories.map((category) => (
@@ -201,12 +350,22 @@ const Inventory = () => {
         ))}
       </div>
 
+      {error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+
       <div className={adminUi.panel}>
         <div className={adminUi.panelHeader}>
           <h2 className={adminUi.panelTitle}>Product Inventory ({filteredProducts.length})</h2>
         </div>
 
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <div className="px-6 py-12 text-center text-sm text-gray-400">
+            Loading inventory products...
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -221,42 +380,49 @@ const Inventory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((product) => {
-                    const stockStatus = getStockStatus(product.quantity);
-                    return (
-                      <tr key={product.id} className={adminUi.tableRow}>
-                        <td className={`${adminUi.td} font-medium text-gray-900`}>{product.name}</td>
-                        <td className={adminUi.td}>{product.category}</td>
-                        <td className={`${adminUi.td} text-gray-800`}>{product.price}</td>
-                        <td className={adminUi.td}>{product.quantity}</td>
-                        <td className={adminUi.td}>
-                          <span className={statusBadge(stockStatus)}>{stockStatus}</span>
-                        </td>
-                        <td className={adminUi.td}>
-                          <div className="flex items-center gap-4">
-                            <button onClick={() => handleEdit(product.id)} className={adminUi.textButton}>
-                              Edit
-                            </button>
-                            <button onClick={() => handleDelete(product.id)} className="text-sm text-red-600 transition hover:underline">
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className={adminUi.tableRow}>
+                      <td className={`${adminUi.td} font-medium text-gray-900`}>
+                        {product.name}
+                      </td>
+                      <td className={adminUi.td}>{product.category}</td>
+                      <td className={`${adminUi.td} text-gray-800`}>{product.priceLabel}</td>
+                      <td className={adminUi.td}>{product.quantity}</td>
+                      <td className={adminUi.td}>
+                        <span className={statusBadge(product.status)}>{product.status}</span>
+                      </td>
+                      <td className={adminUi.td}>
+                        <div className="flex items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(product)}
+                            className={adminUi.textButton}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(product.id)}
+                            disabled={deletingId === product.id}
+                            className="text-sm text-red-600 transition hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {deletingId === product.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className="flex flex-col gap-4 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-gray-500">
-                Showing <span className="font-medium text-gray-700">{filteredProducts.length}</span> of{' '}
-                <span className="font-medium text-gray-700">{products.length}</span> products
+                Showing <span className="font-medium text-gray-700">{filteredProducts.length}</span>{' '}
+                of <span className="font-medium text-gray-700">{products.length}</span> products
               </p>
-              <div className="flex items-center gap-3">
-                <button className={adminUi.secondaryButton}>Previous</button>
-                <button className={adminUi.secondaryButton}>Next</button>
+              <div className="text-sm text-gray-500">
+                Shared inventory is synced with the distributor panel.
               </div>
             </div>
           </>

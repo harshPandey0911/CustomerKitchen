@@ -33,7 +33,7 @@ export default function ServiceRequestForm({ products, onSubmit, onCancel }) {
     setForm((current) => ({ ...current, imageName }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const currentProduct = products.find((product) => product.id === form.productId);
@@ -42,7 +42,7 @@ export default function ServiceRequestForm({ products, onSubmit, onCancel }) {
       return;
     }
 
-    onSubmit({
+    const didSubmit = await onSubmit({
       productId: currentProduct.id,
       productName: currentProduct.productName,
       issueType: form.issueType,
@@ -50,7 +50,9 @@ export default function ServiceRequestForm({ products, onSubmit, onCancel }) {
       imageName: form.imageName,
     });
 
-    setForm(createInitialForm(products));
+    if (didSubmit !== false) {
+      setForm(createInitialForm(products));
+    }
   };
 
   return (

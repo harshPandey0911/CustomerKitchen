@@ -22,6 +22,8 @@ import Header from '../../components/customer/dashboard/Header';
 import BottomNav from '../../components/customer/dashboard/BottomNav';
 import InlineFormSection from '../../components/customer/dashboard/InlineFormSection';
 import ServiceRequestForm from '../../components/customer/service/ServiceRequestForm';
+import { customerProductsApi } from '../../services/customerProductsApi';
+import { serviceRequestsApi } from '../../services/serviceRequestsApi';
 
 const navItems = [
   { id: 'home', label: 'Home', path: '/customer/home', icon: LuHouse },
@@ -62,6 +64,17 @@ const getDefaultCustomerProfile = () => {
   };
 };
 
+const getCurrentCustomerIdentity = () => {
+  const loginData = readStorage('loginData', {});
+  const customerData = readStorage('customerData', {});
+
+  return {
+    fullName: (loginData.userName || customerData.name || '').trim(),
+    email: (loginData.email || customerData.email || '').trim().toLowerCase(),
+    phone: (loginData.phone || customerData.phone || '').trim(),
+  };
+};
+
 const CustomerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -94,8 +107,72 @@ const CustomerDashboard = () => {
   }, [products]);
 
   useEffect(() => {
+    let isCancelled = false;
+    const currentCustomer = getCurrentCustomerIdentity();
+    const customerEmail = (profile.email || currentCustomer.email || '').trim().toLowerCase();
+
+    if (!customerEmail) {
+      return undefined;
+    }
+
+    const loadRegisteredProducts = async () => {
+      try {
+        const response = await customerProductsApi.list(customerEmail);
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (Array.isArray(response.registeredProducts) && response.registeredProducts.length > 0) {
+          setProducts(response.registeredProducts);
+        }
+      } catch {
+        // Keep local product state when backend data is unavailable.
+      }
+    };
+
+    loadRegisteredProducts();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [profile.email]);
+
+  useEffect(() => {
     localStorage.setItem('customerServiceRequests', JSON.stringify(serviceRequests));
   }, [serviceRequests]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const currentCustomer = getCurrentCustomerIdentity();
+    const customerEmail = (profile.email || currentCustomer.email || '').trim().toLowerCase();
+
+    if (!customerEmail) {
+      return undefined;
+    }
+
+    const loadServiceRequests = async () => {
+      try {
+        const response = await serviceRequestsApi.list(customerEmail);
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (Array.isArray(response.serviceRequests) && response.serviceRequests.length > 0) {
+          setServiceRequests(response.serviceRequests);
+        }
+      } catch {
+        // Keep local request state when backend data is unavailable.
+      }
+    };
+
+    loadServiceRequests();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [profile.email]);
 
   useEffect(() => {
     localStorage.setItem('customerReadNotificationIds', JSON.stringify(readNotificationIds));
@@ -104,6 +181,32 @@ const CustomerDashboard = () => {
   useEffect(() => {
     localStorage.setItem('customerProfile', JSON.stringify(profile));
   }, [profile]);
+
+  useEffect(() => {
+    const currentCustomer = getCurrentCustomerIdentity();
+
+    if (!currentCustomer.fullName && !currentCustomer.email && !currentCustomer.phone) {
+      return;
+    }
+
+    setProfile((current) => {
+      const nextProfile = {
+        fullName: currentCustomer.fullName || current.fullName || 'Customer',
+        email: currentCustomer.email || current.email || '',
+        phone: currentCustomer.phone || current.phone || '',
+      };
+
+      if (
+        nextProfile.fullName === current.fullName &&
+        nextProfile.email === current.email &&
+        nextProfile.phone === current.phone
+      ) {
+        return current;
+      }
+
+      return nextProfile;
+    });
+  }, []);
 
   useEffect(() => {
     if (currentPath !== '/customer/notifications') {
@@ -191,40 +294,75 @@ const CustomerDashboard = () => {
     }
   };
 
-  const handleRegisterProduct = (payload) => {
-    const nextProduct = {
-      id: createId('prd'),
-      productName: payload.productName.trim(),
-      brand: payload.brand.trim(),
-      modelNumber: payload.modelNumber.trim(),
-      purchaseDate: payload.purchaseDate,
-      warrantyMonths: Number(payload.warrantyMonths),
-      invoiceName: payload.invoiceName || '',
-    };
+  const handleRegisterProduct = async (payload) => {
+    const currentCustomer = getCurrentCustomerIdentity();
+    const customerEmail = (profile.email || currentCustomer.email || '').trim().toLowerCase();
+    const customerName = (profile.fullName || currentCustomer.fullName || '').trim();
 
-    setProducts((current) => [nextProduct, ...current]);
-    toast.success('Product registered successfully.');
-    closeInlineForm();
+    if (!customerEmail || !customerName) {
+      toast.error('Please sign in again before registering a product.');
+      return false;
+    }
+
+    try {
+      const response = await customerProductsApi.register({
+        customerEmail,
+        customerName,
+        productName: payload.productName.trim(),
+        brand: payload.brand.trim(),
+        modelNumber: payload.modelNumber.trim(),
+        purchaseDate: payload.purchaseDate,
+        warrantyMonths: Number(payload.warrantyMonths),
+        invoiceName: payload.invoiceName || '',
+      });
+
+      setProducts((current) => [response.registeredProduct, ...current]);
+      setProfile((current) => ({
+        ...current,
+        fullName: customerName,
+        email: customerEmail,
+      }));
+      toast.success('Product registered successfully.');
+      closeInlineForm();
+      return true;
+    } catch (error) {
+      toast.error(error.message || 'Unable to register product.');
+      return false;
+    }
   };
 
-  const handleRaiseServiceRequest = (payload) => {
-    const timestamp = new Date().toISOString();
-    const nextRequest = {
-      id: createId('SR'),
-      productId: payload.productId,
-      productName: payload.productName,
-      issueType: payload.issueType,
-      description: payload.description.trim(),
-      imageName: payload.imageName || '',
-      status: 'Pending',
-      assignedTechnician: technicianDirectory[payload.issueType] || 'Support Desk',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+  const handleRaiseServiceRequest = async (payload) => {
+    const currentCustomer = getCurrentCustomerIdentity();
+    const customerEmail = (profile.email || currentCustomer.email || '').trim().toLowerCase();
+    const customerName = (profile.fullName || currentCustomer.fullName || '').trim();
+    const customerPhone = (profile.phone || currentCustomer.phone || '').trim();
 
-    setServiceRequests((current) => [nextRequest, ...current]);
-    toast.success('Service request submitted.');
-    setActiveInlineForm(null);
+    if (!customerEmail || !customerName) {
+      toast.error('Please sign in again before raising a service request.');
+      return false;
+    }
+
+    try {
+      const response = await serviceRequestsApi.create({
+        customerEmail,
+        customerName,
+        customerPhone,
+        productId: payload.productId,
+        productName: payload.productName,
+        issueType: payload.issueType,
+        description: payload.description.trim(),
+        imageName: payload.imageName || '',
+        assignedTechnician: technicianDirectory[payload.issueType] || 'Support Desk',
+      });
+
+      setServiceRequests((current) => [response.serviceRequest, ...current]);
+      toast.success('Service request submitted.');
+      setActiveInlineForm(null);
+      return true;
+    } catch (error) {
+      toast.error(error.message || 'Unable to submit service request.');
+      return false;
+    }
   };
 
   const handleProfileUpdate = (payload) => {

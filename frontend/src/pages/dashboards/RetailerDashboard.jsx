@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BarChart,
@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import PanelLayout from '../../components/layouts/PanelLayout';
 import { APP_DOMAIN } from '../../constants/branding';
+import { customerProductsApi } from '../../services/customerProductsApi';
+import { retailerCustomersApi } from '../../services/retailerCustomersApi';
 
 const sections = [
   {
@@ -62,33 +64,12 @@ const orderData = [
   { id: 'ORD-2104', product: 'Air Fryer', customer: 'Anjali Desai', price: 'Rs 5,499', status: 'Delivered' },
 ];
 
-const initialInventory = [
-  { product: 'Mixer Grinder', sku: 'KH-MX-102', stock: 42, status: 'In Stock' },
-  { product: 'Electric Kettle', sku: 'KH-EK-210', stock: 18, status: 'Low Stock' },
-  { product: 'Air Fryer', sku: 'KH-AF-311', stock: 26, status: 'In Stock' },
-  { product: 'Induction Cooktop', sku: 'KH-IN-124', stock: 11, status: 'Low Stock' },
-];
-
-const customerData = [
-  { name: 'Rajesh Kumar', email: `rajesh@${APP_DOMAIN}`, orders: '12', tier: 'Premium' },
-  { name: 'Priya Singh', email: `priya@${APP_DOMAIN}`, orders: '8', tier: 'Standard' },
-  { name: 'Amit Patel', email: `amit@${APP_DOMAIN}`, orders: '15', tier: 'Premium' },
-  { name: 'Anjali Desai', email: `anjali@${APP_DOMAIN}`, orders: '6', tier: 'New' },
-];
-
 const storeInfo = [
   { label: 'Store Name', value: 'Premium Kitchen Store' },
   { label: 'Location', value: 'Sector 7, Mumbai' },
   { label: 'Contact', value: '+91 98765 43210' },
   { label: 'Join Date', value: '15 Jan 2024' },
 ];
-
-const initialProductForm = {
-  product: '',
-  sku: '',
-  stock: '',
-  status: 'In Stock',
-};
 
 const chartAxis = { fill: '#6b7280', fontSize: 12 };
 const chartTooltip = {
@@ -98,19 +79,28 @@ const chartTooltip = {
   fontSize: '12px',
 };
 
-const cardClass = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
-const panelClass = 'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
-const inputClass = 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200';
+const cardClass = 'panel-hover-card rounded-xl border border-gray-200 bg-white p-5 shadow-sm';
+const panelClass = 'panel-hover-surface overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm';
 const headClass = 'px-5 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500';
 const cellClass = 'px-5 py-4 text-sm text-gray-600';
+const initialCustomerSummary = {
+  activeCustomers: '0',
+  premiumMembers: '0',
+  newThisMonth: '0',
+  repeatRate: '0%',
+};
 
 const RetailerDashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [products, setProducts] = useState(initialInventory);
-  const [showModal, setShowModal] = useState(false);
-  const [newProduct, setNewProduct] = useState(initialProductForm);
+  const [products, setProducts] = useState([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [inventoryError, setInventoryError] = useState('');
+  const [customers, setCustomers] = useState([]);
+  const [customerSummary, setCustomerSummary] = useState(initialCustomerSummary);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customersError, setCustomersError] = useState('');
 
   const userName =
     JSON.parse(localStorage.getItem('loginData') || '{}')?.userName ||
@@ -132,29 +122,132 @@ const RetailerDashboard = () => {
   const filteredInventory = useMemo(
     () =>
       products.filter((item) =>
-        matchesSearch([item.product, item.sku, item.stock, item.status])
+        matchesSearch([
+          item.productName,
+          item.modelNumber,
+          item.customerName,
+          item.customerEmail,
+          item.purchaseDate,
+          item.status,
+        ])
       ),
     [products, query]
   );
 
   const filteredCustomers = useMemo(
     () =>
-      customerData.filter((item) =>
+      customers.filter((item) =>
         matchesSearch([item.name, item.email, item.tier])
       ),
-    [query]
+    [customers, query]
   );
 
+  const customerStats = useMemo(
+    () => [
+      { title: 'Active Customers', value: customerSummary.activeCustomers, meta: 'Live customer accounts' },
+      { title: 'Premium Members', value: customerSummary.premiumMembers, meta: 'Frequent returning users' },
+      { title: 'New This Month', value: customerSummary.newThisMonth, meta: 'Fresh customer signups' },
+      { title: 'Repeat Rate', value: customerSummary.repeatRate, meta: 'Based on repeat logins' },
+    ],
+    [customerSummary]
+  );
+
+  useEffect(() => {
+    if (activeSection !== 'inventory') {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    const loadInventory = async () => {
+      setInventoryLoading(true);
+      setInventoryError('');
+
+      try {
+        const response = await customerProductsApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setProducts(response.registeredProducts || []);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setProducts([]);
+        setInventoryError(error.message || 'Unable to load registered products.');
+      } finally {
+        if (!isCancelled) {
+          setInventoryLoading(false);
+        }
+      }
+    };
+
+    loadInventory();
+    const refreshTimer = window.setInterval(loadInventory, 10000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(refreshTimer);
+    };
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (activeSection !== 'customers') {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    const loadCustomers = async () => {
+      setCustomersLoading(true);
+      setCustomersError('');
+
+      try {
+        const response = await retailerCustomersApi.list();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setCustomers(response.customers || []);
+        setCustomerSummary(response.stats || initialCustomerSummary);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setCustomers([]);
+        setCustomerSummary(initialCustomerSummary);
+        setCustomersError(error.message || 'Unable to load customers.');
+      } finally {
+        if (!isCancelled) {
+          setCustomersLoading(false);
+        }
+      }
+    };
+
+    loadCustomers();
+    const refreshTimer = window.setInterval(loadCustomers, 10000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(refreshTimer);
+    };
+  }, [activeSection]);
+
   const inventoryStats = useMemo(() => {
-    const lowStockCount = products.filter((item) => item.status === 'Low Stock').length;
-    const inStockCount = products.filter((item) => item.status === 'In Stock').length;
-    const totalUnits = products.reduce((sum, item) => sum + item.stock, 0);
+    const activeWarrantyCount = products.filter((item) => item.status === 'Active').length;
+    const expiringSoonCount = products.filter((item) => item.status === 'Expiring Soon').length;
+    const uniqueModels = new Set(products.map((item) => item.modelNumber)).size;
 
     return [
-      { title: 'Items Tracked', value: String(products.length), meta: 'Across all categories' },
-      { title: 'Low Stock Alerts', value: String(lowStockCount), meta: 'Need review soon' },
-      { title: 'In Stock', value: String(inStockCount), meta: 'Ready for sale' },
-      { title: 'Total Units', value: String(totalUnits), meta: 'Current inventory count' },
+      { title: 'Registered Products', value: String(products.length), meta: 'Saved from customer registrations' },
+      { title: 'Unique Models', value: String(uniqueModels), meta: 'Different products tracked' },
+      { title: 'Active Warranty', value: String(activeWarrantyCount), meta: 'Currently covered products' },
+      { title: 'Expiring Soon', value: String(expiringSoonCount), meta: 'Need follow-up soon' },
     ];
   }, [products]);
 
@@ -164,55 +257,39 @@ const RetailerDashboard = () => {
     navigate('/retailer/login');
   };
 
-  const handleOpenModal = () => {
-    setNewProduct(initialProductForm);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setNewProduct(initialProductForm);
-  };
-
-  const handleAddProduct = (event) => {
-    event.preventDefault();
-
-    const productName = newProduct.product.trim();
-    const sku = newProduct.sku.trim();
-    const stockValue = Number.parseInt(newProduct.stock, 10);
-
-    if (!productName || !sku || Number.isNaN(stockValue) || stockValue < 0) {
-      return;
-    }
-
-    setProducts((current) => [
-      ...current,
-      {
-        product: productName,
-        sku,
-        stock: stockValue,
-        status: newProduct.status,
-      },
-    ]);
-
-    handleCloseModal();
-  };
-
   const getTitle = () =>
     sections
       .flatMap((section) => section.items)
       .find((item) => item.id === activeSection)?.label || 'Dashboard';
 
   const badgeClass = (status) => {
-    if (['Delivered', 'In Stock', 'Premium'].includes(status)) {
+    if (['Delivered', 'Premium', 'Active'].includes(status)) {
       return 'inline-flex rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white';
     }
 
-    if (['Pending', 'Processing', 'Standard'].includes(status)) {
+    if (['Pending', 'Processing', 'Standard', 'Expiring Soon'].includes(status)) {
       return 'inline-flex rounded-full bg-gray-200 px-3 py-1 text-xs font-medium text-gray-700';
     }
 
+    if (status === 'Expired') {
+      return 'inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700';
+    }
+
     return 'inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600';
+  };
+
+  const formatPurchaseDate = (value) => {
+    const parsed = new Date(String(value).includes('T') ? value : `${value}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return value || 'Not available';
+    }
+
+    return parsed.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
   };
 
   const renderCards = (items) => (
@@ -227,7 +304,7 @@ const RetailerDashboard = () => {
     </div>
   );
 
-  const renderTable = (title, columns, rows, keyField) => (
+  const renderTable = (title, columns, rows, keyField, emptyMessage = 'No records found.') => (
     <div className={panelClass}>
       <div className="border-b border-gray-200 px-5 py-4">
         <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
@@ -244,21 +321,29 @@ const RetailerDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row[keyField]} className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-                {columns.map((column) => (
-                  <td key={column.key} className={`${cellClass} ${column.bold ? 'font-medium text-gray-900' : ''}`}>
-                    {column.badge ? (
-                      <span className={badgeClass(row[column.key])}>{row[column.key]}</span>
-                    ) : column.render ? (
-                      column.render(row)
-                    ) : (
-                      row[column.key]
-                    )}
-                  </td>
-                ))}
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <tr key={row[keyField]} className="panel-hover-row border-b border-gray-200 last:border-b-0">
+                  {columns.map((column) => (
+                    <td key={column.key} className={`${cellClass} ${column.bold ? 'font-medium text-gray-900' : ''}`}>
+                      {column.badge ? (
+                        <span className={badgeClass(row[column.key])}>{row[column.key]}</span>
+                      ) : column.render ? (
+                        column.render(row)
+                      ) : (
+                        row[column.key]
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length} className="px-5 py-8 text-center text-sm text-gray-500">
+                  {emptyMessage}
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -323,16 +408,23 @@ const RetailerDashboard = () => {
     inventory: (
       <div className="space-y-6">
         {renderCards(inventoryStats)}
+        {inventoryError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {inventoryError}
+          </div>
+        ) : null}
         {renderTable(
-          'Inventory Overview',
+          'Customer Registered Products',
           [
-            { key: 'product', label: 'Product', bold: true },
-            { key: 'sku', label: 'SKU' },
-            { key: 'stock', label: 'Stock', render: (row) => `${row.stock} Units` },
+            { key: 'productName', label: 'Product', bold: true },
+            { key: 'modelNumber', label: 'Model' },
+            { key: 'customerName', label: 'Customer' },
+            { key: 'purchaseDate', label: 'Purchased On', render: (row) => formatPurchaseDate(row.purchaseDate) },
             { key: 'status', label: 'Status', badge: true },
           ],
           filteredInventory,
-          'sku'
+          'id',
+          inventoryLoading ? 'Loading registered products...' : 'No customer registered products yet.'
         )}
       </div>
     ),
@@ -359,12 +451,12 @@ const RetailerDashboard = () => {
     ),
     customers: (
       <div className="space-y-6">
-        {renderCards([
-          { title: 'Active Customers', value: '487', meta: 'Engaged in last 30 days' },
-          { title: 'Premium Members', value: '148', meta: 'High-value shoppers' },
-          { title: 'New This Month', value: '29', meta: 'Fresh signups' },
-          { title: 'Repeat Rate', value: '64%', meta: 'Strong retention' },
-        ])}
+        {renderCards(customerStats)}
+        {customersError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {customersError}
+          </div>
+        ) : null}
         {renderTable(
           'Customer Directory',
           [
@@ -374,7 +466,8 @@ const RetailerDashboard = () => {
             { key: 'tier', label: 'Tier', badge: true },
           ],
           filteredCustomers,
-          'email'
+          'email',
+          customersLoading ? 'Loading customers...' : 'No customer records yet.'
         )}
       </div>
     ),
@@ -418,10 +511,10 @@ const RetailerDashboard = () => {
               <p className="mt-1 text-xs text-gray-500">Monitor low stock and restock reminders.</p>
             </div>
             <div className="flex gap-3 pt-2">
-              <button type="button" className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100">
+              <button type="button" className="panel-hover-button-light rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition">
                 Cancel
               </button>
-              <button type="button" className="rounded-lg bg-black px-4 py-2 text-sm text-white transition hover:bg-gray-900">
+              <button type="button" className="panel-hover-button-dark rounded-lg bg-black px-4 py-2 text-sm text-white transition">
                 Save Changes
               </button>
             </div>
@@ -458,94 +551,12 @@ const RetailerDashboard = () => {
           { label: 'Store Profile', onClick: () => {} },
           { label: 'Notifications', onClick: () => {} },
         ]}
-        headerActions={
-          activeSection === 'inventory' ? (
-            <button
-              type="button"
-              onClick={handleOpenModal}
-              className="rounded-lg bg-black px-4 py-2 text-sm text-white transition hover:bg-gray-900"
-            >
-              + Add Product
-            </button>
-          ) : null
-        }
         onLogout={handleLogout}
       >
         <div className="min-h-full">
           {activeSection === 'dashboard' ? dashboardView : sectionView[activeSection] || dashboardView}
         </div>
       </PanelLayout>
-
-      {showModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md space-y-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">Add Product</h2>
-
-            <form className="space-y-4" onSubmit={handleAddProduct}>
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={newProduct.product}
-                onChange={(event) =>
-                  setNewProduct((current) => ({ ...current, product: event.target.value }))
-                }
-                className={inputClass}
-                required
-              />
-
-              <input
-                type="text"
-                placeholder="SKU"
-                value={newProduct.sku}
-                onChange={(event) =>
-                  setNewProduct((current) => ({ ...current, sku: event.target.value }))
-                }
-                className={inputClass}
-                required
-              />
-
-              <input
-                type="number"
-                min="0"
-                placeholder="Stock"
-                value={newProduct.stock}
-                onChange={(event) =>
-                  setNewProduct((current) => ({ ...current, stock: event.target.value }))
-                }
-                className={inputClass}
-                required
-              />
-
-              <select
-                value={newProduct.status}
-                onChange={(event) =>
-                  setNewProduct((current) => ({ ...current, status: event.target.value }))
-                }
-                className={inputClass}
-              >
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-              </select>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-black px-4 py-2 text-sm text-white transition hover:bg-gray-900"
-                >
-                  Add
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 };

@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { saveDummyLoginSession } from '../../services/authSession';
+import { customerAuthApi } from '../../services/customerAuthApi';
 import { APP_LOGO, APP_NAME, APP_STORAGE_PREFIX } from '../../constants/branding';
 
-const ACCOUNT_STORAGE_KEY = `${APP_STORAGE_PREFIX}CustomerAccounts`;
 const PREFILL_EMAIL_KEY = `${APP_STORAGE_PREFIX}CustomerPrefillEmail`;
 
 const initialLoginForm = {
@@ -18,20 +18,6 @@ const initialSignupForm = {
   name: '',
   email: '',
   password: '',
-};
-
-const readAccounts = () => {
-  try {
-    const raw = localStorage.getItem(ACCOUNT_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeAccounts = (accounts) => {
-  localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(accounts));
 };
 
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -148,20 +134,69 @@ const CustomerAuth = ({ mode = 'login' }) => {
       return;
     }
 
+    const trimmedEmail = loginForm.email.trim().toLowerCase();
     setLoginLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      const response = await customerAuthApi.login({
+        email: trimmedEmail,
+        password: loginForm.password,
+      });
+      const authenticatedUser = response.user;
 
       const { dashboardPath, loginData } = saveDummyLoginSession({
         pathname: location.pathname,
-        email: loginForm.email.trim(),
+        email: authenticatedUser.email,
         rememberMe: loginForm.rememberMe,
+        displayNameOverride: authenticatedUser.name,
       });
+      localStorage.setItem(
+        'customerData',
+        JSON.stringify({
+          id: authenticatedUser.id,
+          name: authenticatedUser.name,
+          email: authenticatedUser.email,
+          role: authenticatedUser.role,
+          createdAt: authenticatedUser.createdAt,
+        }),
+      );
+      localStorage.setItem(
+        'customerProfile',
+        JSON.stringify({
+          fullName: authenticatedUser.name,
+          email: authenticatedUser.email,
+          phone: '',
+        }),
+      );
 
       console.log('Login Success');
       toast.success(`Welcome back, ${String(loginData.userName).split(/[ _]/)[0]}!`);
       navigate(dashboardPath);
+    } catch (error) {
+      if (error.code === 'ACCOUNT_NOT_FOUND' || error.status === 404) {
+        setLoginErrors({});
+        setLoginForm((current) => ({
+          ...current,
+          email: trimmedEmail,
+          password: '',
+        }));
+        setSignupForm({
+          ...initialSignupForm,
+          email: trimmedEmail,
+        });
+        switchMode('signup');
+        setSignupErrors({
+          email: 'No account found. Create an account to continue.',
+        });
+        toast('No account found. Please sign up first.');
+        return;
+      }
+
+      setLoginErrors((current) => ({
+        ...current,
+        password: error.message,
+      }));
+      toast.error(error.message);
     } finally {
       setLoginLoading(false);
     }
@@ -175,36 +210,45 @@ const CustomerAuth = ({ mode = 'login' }) => {
     }
 
     const email = signupForm.email.trim().toLowerCase();
-    const accounts = readAccounts();
-
-    if (accounts.some((item) => item.email === email)) {
-      setSignupErrors({ email: 'An account with this email already exists' });
-      toast.error('Email already registered');
-      return;
-    }
-
     setSignupLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const newAccount = {
-        id: `cust-${Date.now()}`,
+      const response = await customerAuthApi.register({
         name: signupForm.name.trim(),
         email,
         password: signupForm.password,
-        role: 'customer',
-        createdAt: new Date().toLocaleString(),
-      };
-
-      writeAccounts([newAccount, ...accounts]);
-      localStorage.setItem('customerData', JSON.stringify(newAccount));
+      });
+      const createdUser = response.user;
+      localStorage.setItem(
+        'customerData',
+        JSON.stringify({
+          id: createdUser.id,
+          name: createdUser.name,
+          email: createdUser.email,
+          role: createdUser.role,
+          createdAt: createdUser.createdAt,
+        }),
+      );
+      localStorage.setItem(
+        'customerProfile',
+        JSON.stringify({
+          fullName: createdUser.name,
+          email: createdUser.email,
+          phone: '',
+        }),
+      );
       sessionStorage.setItem(PREFILL_EMAIL_KEY, email);
 
       toast.success('Account created. Sign in to continue.');
       switchMode('login');
       setLoginForm((current) => ({ ...current, email }));
       setSignupForm(initialSignupForm);
+    } catch (error) {
+      setSignupErrors((current) => ({
+        ...current,
+        email: error.message,
+      }));
+      toast.error(error.message);
     } finally {
       setSignupLoading(false);
     }
