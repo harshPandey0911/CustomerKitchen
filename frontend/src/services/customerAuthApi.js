@@ -1,33 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
-
-const request = async (path, payload) => {
-  let response;
-
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    throw new Error('Unable to reach the auth server. Please start the backend and try again.');
-  }
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const error = new Error(data.message || 'Request failed.');
-    error.status = response.status;
-    error.code = data.code;
-    throw error;
-  }
-
-  return data;
-};
+import { frontendDataStore } from './frontendDataStore';
 
 export const customerAuthApi = {
-  register: (payload) => request('/api/auth/register', payload),
-  login: (payload) => request('/api/auth/login', payload),
+  register: async (payload) => frontendDataStore.registerCustomer(payload),
+  login: async (payload) => frontendDataStore.authenticateCustomer(payload),
 };
