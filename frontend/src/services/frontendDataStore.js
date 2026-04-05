@@ -42,6 +42,18 @@ const normalizeEmail = (value = '') => String(value).trim().toLowerCase();
 
 const createAppError = (message, extras = {}) => Object.assign(new Error(message), extras);
 
+const toTitleCase = (value = '') =>
+  String(value)
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+
+const deriveNameFromEmail = (email = '', fallback = 'User') => {
+  const localPart = normalizeEmail(email).split('@')[0] || '';
+  return toTitleCase(localPart) || fallback;
+};
+
 const readJson = (key, fallback) => {
   if (!canUseStorage()) {
     return clone(fallback);
@@ -586,6 +598,51 @@ const upsertCustomer = (db, payload) => {
   return customer;
 };
 
+const upsertSubAdmin = (db, payload) => {
+  const normalizedEmail = normalizeEmail(payload.email);
+  const index = db.subAdmins.findIndex((item) => item.email === normalizedEmail);
+  const existing = index >= 0 ? db.subAdmins[index] : null;
+  const subAdmin = sanitizeSubAdmin(payload, existing || {});
+
+  if (index >= 0) {
+    db.subAdmins[index] = subAdmin;
+  } else {
+    db.subAdmins.unshift(subAdmin);
+  }
+
+  return subAdmin;
+};
+
+const upsertDistributor = (db, payload) => {
+  const normalizedEmail = normalizeEmail(payload.email);
+  const index = db.distributors.findIndex((item) => item.email === normalizedEmail);
+  const existing = index >= 0 ? db.distributors[index] : null;
+  const distributor = sanitizeDistributor(payload, existing || {});
+
+  if (index >= 0) {
+    db.distributors[index] = distributor;
+  } else {
+    db.distributors.unshift(distributor);
+  }
+
+  return distributor;
+};
+
+const upsertRetailer = (db, payload) => {
+  const normalizedEmail = normalizeEmail(payload.email);
+  const index = db.retailers.findIndex((item) => item.email === normalizedEmail);
+  const existing = index >= 0 ? db.retailers[index] : null;
+  const retailer = sanitizeRetailer(payload, existing || {});
+
+  if (index >= 0) {
+    db.retailers[index] = retailer;
+  } else {
+    db.retailers.unshift(retailer);
+  }
+
+  return retailer;
+};
+
 const countCustomerProducts = (db, email) =>
   db.customerProducts.filter((item) => item.customerEmail === normalizeEmail(email)).length;
 
@@ -642,66 +699,115 @@ export const frontendDataStore = {
   },
   authenticateCustomer({ email, password }) {
     const normalizedEmail = normalizeEmail(email);
-    const dbBefore = getDbSnapshot();
-    const customerBefore = dbBefore.customers.find((item) => item.email === normalizedEmail);
-
-    if (!customerBefore) {
-      throw createAppError('No account found for this email.', {
-        status: 404,
-        code: 'ACCOUNT_NOT_FOUND',
-      });
-    }
-
-    if (!verifyPassword(customerBefore, password)) {
-      throw createAppError('Invalid email or password.', { status: 401 });
-    }
+    requireCredentials(normalizedEmail, password, 'Email and password are required.');
 
     const db = mutateDb((draft) => {
-      const index = draft.customers.findIndex((item) => item.email === normalizedEmail);
-      draft.customers[index] = markLogin(draft.customers[index]);
+      const customer = upsertCustomer(draft, {
+        email: normalizedEmail,
+        name: deriveNameFromEmail(normalizedEmail, 'Customer'),
+        password,
+      });
+
+      const index = draft.customers.findIndex((item) => item.id === customer.id);
+      draft.customers[index] = markLogin({
+        ...customer,
+        password,
+      });
       ensureCustomerSeedData(draft, draft.customers[index]);
     });
 
     return { user: db.customers.find((item) => item.email === normalizedEmail) };
   },
   authenticateAdmin({ email, password }) {
-    requireCredentials(email, password, 'Email and password are required.');
+    const normalizedEmail = normalizeEmail(email);
+    requireCredentials(normalizedEmail, password, 'Email and password are required.');
 
-    const db = mutateDb((draft) => {
-      if (normalizeEmail(email) !== DEFAULT_ADMIN.email || !verifyPassword(DEFAULT_ADMIN, password)) {
-        throw createAppError('Invalid admin email or password.', { status: 401 });
-      }
-
+    mutateDb((draft) => {
       draft.admin = markLogin({
         ...draft.admin,
-        name: DEFAULT_ADMIN.name,
-        email: DEFAULT_ADMIN.email,
-        password: DEFAULT_ADMIN.password,
       });
     });
 
-    return { admin: db.admin };
+    return {
+      admin: {
+        ...DEFAULT_ADMIN,
+        name: deriveNameFromEmail(normalizedEmail, 'Admin User'),
+        email: normalizedEmail,
+        password,
+      },
+    };
   },
   authenticateSubAdmin({ email, password }) {
-    return {
-      subAdmin: authenticateRecord('subAdmins', email, password, {
-        invalidMessage: 'Invalid sub admin email or password.',
-      }),
-    };
+    const normalizedEmail = normalizeEmail(email);
+    requireCredentials(normalizedEmail, password, 'Email and password are required.');
+
+    const db = mutateDb((draft) => {
+      const subAdmin = upsertSubAdmin(draft, {
+        email: normalizedEmail,
+        name: deriveNameFromEmail(normalizedEmail, 'Sub Admin'),
+        password,
+        role: 'Manager',
+        status: 'Active',
+        permissions: ['Inventory', 'Orders', 'Reports', 'Services'],
+      });
+
+      const index = draft.subAdmins.findIndex((item) => item.id === subAdmin.id);
+      draft.subAdmins[index] = markLogin({
+        ...subAdmin,
+        password,
+      });
+    });
+
+    return { subAdmin: db.subAdmins.find((item) => item.email === normalizedEmail) };
   },
   authenticateDistributor({ email, password }) {
-    return {
-      distributor: authenticateRecord('distributors', email, password, {
-        invalidMessage: 'Invalid distributor email or password.',
-      }),
-    };
+    const normalizedEmail = normalizeEmail(email);
+    requireCredentials(normalizedEmail, password, 'Email and password are required.');
+
+    const db = mutateDb((draft) => {
+      const distributor = upsertDistributor(draft, {
+        email: normalizedEmail,
+        name: deriveNameFromEmail(normalizedEmail, 'Distributor'),
+        password,
+        phone: '98765 43210',
+        location: 'Mumbai',
+        status: 'Active',
+      });
+
+      const index = draft.distributors.findIndex((item) => item.id === distributor.id);
+      draft.distributors[index] = markLogin({
+        ...distributor,
+        password,
+      });
+    });
+
+    return { distributor: db.distributors.find((item) => item.email === normalizedEmail) };
   },
   authenticateRetailer({ email, password }) {
-    return {
-      retailer: authenticateRecord('retailers', email, password, {
-        invalidMessage: 'Invalid retailer email or password.',
-      }),
-    };
+    const normalizedEmail = normalizeEmail(email);
+    requireCredentials(normalizedEmail, password, 'Email and password are required.');
+
+    const db = mutateDb((draft) => {
+      const retailer = upsertRetailer(draft, {
+        email: normalizedEmail,
+        name: deriveNameFromEmail(normalizedEmail, 'Retailer'),
+        password,
+        phone: '98765 43210',
+        location: 'Mumbai',
+        status: 'Active',
+        orderCount: 0,
+        customerCount: 0,
+        salesAmount: 0,
+      });
+
+      const index = draft.retailers.findIndex((item) => item.id === retailer.id);
+      draft.retailers[index] = markLogin({
+        ...retailer,
+        password,
+      });
+    });
+
+    return { retailer: db.retailers.find((item) => item.email === normalizedEmail) };
   },
   listSubAdmins() {
     return {
