@@ -20,7 +20,7 @@ const initialSignupForm = {
   password: '',
 };
 
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const hasAtSymbol = (value) => String(value).includes('@');
 
 const UnderlineField = ({
   label,
@@ -92,8 +92,8 @@ const CustomerAuth = ({ mode = 'login' }) => {
 
     if (!loginForm.email.trim()) {
       nextErrors.email = 'Email is required';
-    } else if (!isValidEmail(loginForm.email.trim())) {
-      nextErrors.email = 'Enter a valid email address';
+    } else if (!hasAtSymbol(loginForm.email.trim())) {
+      nextErrors.email = 'Email must include @';
     }
 
     if (!loginForm.password) {
@@ -113,8 +113,8 @@ const CustomerAuth = ({ mode = 'login' }) => {
 
     if (!signupForm.email.trim()) {
       nextErrors.email = 'Email is required';
-    } else if (!isValidEmail(signupForm.email.trim())) {
-      nextErrors.email = 'Enter a valid email address';
+    } else if (!hasAtSymbol(signupForm.email.trim())) {
+      nextErrors.email = 'Email must include @';
     }
 
     if (!signupForm.password) {
@@ -173,25 +173,6 @@ const CustomerAuth = ({ mode = 'login' }) => {
       toast.success(`Welcome back, ${String(loginData.userName).split(/[ _]/)[0]}!`);
       navigate(dashboardPath);
     } catch (error) {
-      if (error.code === 'ACCOUNT_NOT_FOUND' || error.status === 404) {
-        setLoginErrors({});
-        setLoginForm((current) => ({
-          ...current,
-          email: trimmedEmail,
-          password: '',
-        }));
-        setSignupForm({
-          ...initialSignupForm,
-          email: trimmedEmail,
-        });
-        switchMode('signup');
-        setSignupErrors({
-          email: 'No account found. Create an account to continue.',
-        });
-        toast('No account found. Please sign up first.');
-        return;
-      }
-
       setLoginErrors((current) => ({
         ...current,
         password: error.message,
@@ -325,7 +306,7 @@ const CustomerAuth = ({ mode = 'login' }) => {
               <UnderlineField
                 label="Email"
                 icon={FiMail}
-                type="email"
+                type="text"
                 inputMode="email"
                 autoComplete="email"
                 placeholder="Enter your email"
@@ -408,7 +389,7 @@ const CustomerAuth = ({ mode = 'login' }) => {
               <UnderlineField
                 label="Email"
                 icon={FiMail}
-                type="email"
+                type="text"
                 inputMode="email"
                 autoComplete="email"
                 placeholder="Enter your email"

@@ -22,6 +22,7 @@ const initialRegisterForm = {
 };
 
 const inputClass = 'input-field';
+const hasAtSymbol = (value) => String(value).includes('@');
 
 const readAccounts = () => {
   try {
@@ -84,6 +85,8 @@ export default function RoleAuth({ initialMode = 'login' }) {
 
     if (!loginForm.email.trim()) {
       nextErrors.email = 'Email is required';
+    } else if (!hasAtSymbol(loginForm.email.trim())) {
+      nextErrors.email = 'Email must include @';
     }
 
     if (!loginForm.password.trim()) {
@@ -103,6 +106,8 @@ export default function RoleAuth({ initialMode = 'login' }) {
 
     if (!registerForm.email.trim()) {
       nextErrors.email = 'Email is required';
+    } else if (!hasAtSymbol(registerForm.email.trim())) {
+      nextErrors.email = 'Email must include @';
     }
 
     if (!registerForm.password.trim()) {

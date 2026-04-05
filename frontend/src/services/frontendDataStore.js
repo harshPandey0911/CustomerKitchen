@@ -39,6 +39,7 @@ const createId = (prefix = 'id') =>
 const nowIso = () => new Date().toISOString();
 
 const normalizeEmail = (value = '') => String(value).trim().toLowerCase();
+const hasAtSymbol = (value = '') => normalizeEmail(value).includes('@');
 
 const createAppError = (message, extras = {}) => Object.assign(new Error(message), extras);
 
@@ -556,6 +557,10 @@ const requireCredentials = (email, password, errorMessage) => {
   if (!normalizeEmail(email) || !String(password || '').trim()) {
     throw createAppError(errorMessage);
   }
+
+  if (!hasAtSymbol(email)) {
+    throw createAppError('Email must include @');
+  }
 };
 
 const authenticateRecord = (collectionKey, email, password, options = {}) => {
@@ -821,6 +826,10 @@ export const frontendDataStore = {
       throw createAppError('Please fill name, email, and password.');
     }
 
+    if (!hasAtSymbol(normalizedEmail)) {
+      throw createAppError('Email must include @');
+    }
+
     const db = mutateDb((draft) => {
       if (draft.subAdmins.some((item) => item.email === normalizedEmail)) {
         throw createAppError('A sub admin with this email already exists.');
@@ -853,6 +862,10 @@ export const frontendDataStore = {
 
     if (!payload.name?.trim() || !normalizedEmail || !payload.password?.trim()) {
       throw createAppError('Please complete all distributor details.');
+    }
+
+    if (!hasAtSymbol(normalizedEmail)) {
+      throw createAppError('Email must include @');
     }
 
     const db = mutateDb((draft) => {
@@ -904,6 +917,10 @@ export const frontendDataStore = {
 
     if (!payload.name?.trim() || !normalizedEmail || !payload.password?.trim()) {
       throw createAppError('Please complete all retailer details.');
+    }
+
+    if (!hasAtSymbol(normalizedEmail)) {
+      throw createAppError('Email must include @');
     }
 
     const db = mutateDb((draft) => {
