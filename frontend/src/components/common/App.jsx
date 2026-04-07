@@ -10,7 +10,7 @@ function App() {
         position="top-center"
         reverseOrder={false}
         toastOptions={{
-          duration: 4000,
+          duration: 500,
           style: {
             background: '#fff',
             color: '#000',
