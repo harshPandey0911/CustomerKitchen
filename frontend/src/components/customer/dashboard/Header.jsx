@@ -8,7 +8,6 @@ export default function Header({
   isProfileMenuOpen,
   onNotificationsClick,
   onToggleProfileMenu,
-  onOpenProfile,
   onEditProfile,
   onLogout,
 }) {
@@ -48,13 +47,6 @@ export default function Header({
 
       {isProfileMenuOpen ? (
         <div className="absolute right-0 top-[calc(100%+12px)] z-20 w-48 overflow-hidden rounded-2xl bg-white py-2 !shadow-[0_16px_38px_rgba(30,30,30,0.12)]">
-          <button
-            type="button"
-            onClick={onOpenProfile}
-            className="w-full px-4 py-3 text-left text-sm font-medium text-[#1E1E1E] transition-colors duration-300 ease-out hover:bg-[#F8F6F4] active:scale-[0.98]"
-          >
-            Open Profile
-          </button>
           <button
             type="button"
             onClick={onEditProfile}

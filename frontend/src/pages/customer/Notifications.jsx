@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { formatDisplayDate } from '../../data/customerOwnership';
 
 const cardClass = 'customer-surface rounded-[28px] p-5';
@@ -23,16 +24,39 @@ const getToneClasses = (tone) => {
 };
 
 export default function Notifications({ notifications, unreadCount }) {
+  const [deletedNotifications, setDeletedNotifications] = useState(new Set());
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e, notificationId) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    
+    if (!touchStart || !e.changedTouches[0].clientX) return;
+    
+    const distance = touchStart - e.changedTouches[0].clientX;
+    
+    // If swiped right by at least 100px, delete the card
+    if (distance > 100) {
+      setDeletedNotifications((prev) => new Set(prev).add(notificationId));
+    }
+  };
+
+  const activeNotifications = notifications.filter((n) => !deletedNotifications.has(n.id));
+
   const stats = [
-    { label: 'Total Updates', value: notifications.length, meta: 'Warranty, service, and order alerts' },
+    { label: 'Total Updates', value: activeNotifications.length, meta: 'Warranty, service, and order alerts' },
     {
       label: 'Warranty Alerts',
-      value: notifications.filter((notification) => notification.type === 'warranty').length,
+      value: activeNotifications.filter((notification) => notification.type === 'warranty').length,
       meta: 'Coverage-related reminders',
     },
     {
       label: 'Service Updates',
-      value: notifications.filter((notification) => notification.type === 'service').length,
+      value: activeNotifications.filter((notification) => notification.type === 'service').length,
       meta: 'Repair and technician activity',
     },
     { label: 'Unread Before Open', value: unreadCount, meta: 'Badge count before viewing this page' },
@@ -47,19 +71,28 @@ export default function Notifications({ notifications, unreadCount }) {
         </p>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.label} className={`${cardClass} customer-stat-card`}>
-            <p className="text-[17px] font-bold text-gray-900">{stat.label}</p>
-            <p className="mt-3 text-3xl font-bold text-black">{stat.value}</p>
-            <p className="mt-2 text-sm text-gray-700">{stat.meta}</p>
+          <div key={stat.label} className="customer-surface rounded-[16px] p-3 sm:p-4">
+            <p className="text-xs sm:text-sm font-bold text-gray-900">{stat.label}</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-bold text-black">{stat.value}</p>
+            <p className="mt-1 text-xs text-gray-700 line-clamp-2">{stat.meta}</p>
           </div>
         ))}
       </section>
 
-      <section className="space-y-4">
-        {notifications.map((notification) => (
-          <article key={notification.id} className={cardClass}>
+      <section className="space-y-3">
+        {activeNotifications.map((notification) => (
+          <article
+            key={notification.id}
+            className={`${cardClass} cursor-grab active:cursor-grabbing transition-all duration-300 ease-out transform ${
+              deletedNotifications.has(notification.id)
+                ? 'notification-swipe-delete'
+                : 'notification-swipe-idle'
+            }`}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={(e) => handleTouchEnd(e, notification.id)}
+          >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -75,7 +108,7 @@ export default function Notifications({ notifications, unreadCount }) {
           </article>
         ))}
 
-        {notifications.length === 0 ? (
+        {activeNotifications.length === 0 ? (
           <div className={`${cardClass} text-center`}>
             <p className="text-lg font-bold text-black">All caught up</p>
             <p className="mt-3 text-sm leading-6 text-gray-700">

@@ -1312,3 +1312,60 @@ body.modal-open .customer-panel .customer-floating-nav {
 .panel-hover-button-dark:hover {
   background-color: #111827 !important;
 }
+
+/* Toast Notification Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+/* Swipe to Delete Animation */
+@keyframes notificationSwipeDelete {
+  from {
+    opacity: 1;
+    transform: translateX(0) scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%) scaleY(0.8);
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@keyframes notificationSwipeIdle {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.notification-swipe-delete {
+  animation: notificationSwipeDelete 0.4s ease-out forwards !important;
+}
+
+.notification-swipe-idle {
+  animation: notificationSwipeIdle 0.3s ease-out;
+}

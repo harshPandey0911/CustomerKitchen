@@ -489,7 +489,6 @@ const CustomerDashboard = () => {
               isProfileMenuOpen={openProfile}
               onNotificationsClick={() => navigateWithScroll('/customer/notifications')}
               onToggleProfileMenu={() => setOpenProfile((current) => !current)}
-              onOpenProfile={() => navigateWithScroll('/customer/profile')}
               onEditProfile={() => navigateWithScroll('/customer/profile/edit')}
               onLogout={handleLogout}
             />
